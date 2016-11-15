@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">我的传感器</string>
+    <string name="name">名称</string>
+    <string name="type">类型</string>
+</resources>
