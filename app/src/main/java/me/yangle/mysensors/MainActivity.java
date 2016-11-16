@@ -1,13 +1,13 @@
 package me.yangle.mysensors;
 
+import android.content.Intent;
 import android.hardware.Sensor;
 import android.hardware.SensorManager;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.SparseArray;
-import android.view.ViewGroup;
-import android.widget.TableRow;
-import android.widget.TextView;
+
+import org.json.JSONArray;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
@@ -43,22 +43,27 @@ public class MainActivity extends AppCompatActivity {
             }
         }
 
+        JSONArray array = new JSONArray();
+
+        JSONArray title = new JSONArray();
+        title.put(getString(R.string.type));
+        title.put(getString(R.string.name));
+
+        array.put(title);
+
         SensorManager sensorManager = (SensorManager)getSystemService(SENSOR_SERVICE);
         List<Sensor> allSensors = sensorManager.getSensorList(Sensor.TYPE_ALL);
 
         for (Sensor sensor : allSensors) {
-            TextView type = new TextView(this);
-            type.setText(typeString.get(sensor.getType()));
+            JSONArray obj = new JSONArray();
+            obj.put(typeString.get(sensor.getType()));
+            obj.put(sensor.getName());
 
-            TextView name = new TextView(this);
-            name.setText(sensor.getName());
-
-            TableRow row = new TableRow(this);
-            row.addView(type);
-            row.addView(name);
-
-            ViewGroup layout = (ViewGroup) findViewById(R.id.activity_main);
-            layout.addView(row);
+            array.put(obj);
         }
+
+        Intent intent = new Intent(this, TableDisplayActivity.class);
+        intent.putExtra("json", array.toString());
+        startActivity(intent);
     }
 }
