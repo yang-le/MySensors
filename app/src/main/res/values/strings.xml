@@ -5,4 +5,7 @@
     <string name="button">Button</string>
     <string name="sensor">Sensor</string>
     <string name="mysensor">MySensor</string>
+    <string name="cpu">CPU</string>
+    <string name="gpu">GPU</string>
+    <string name="storage">Storage</string>
 </resources>

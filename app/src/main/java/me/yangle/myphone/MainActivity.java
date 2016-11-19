@@ -71,4 +71,9 @@ public class MainActivity extends AppCompatActivity {
         intent.putExtra("json", array.toString());
         startActivity(intent);
     }
+
+    public void onQuitBtnClick(View v)
+    {
+        finish();
+    }
 }

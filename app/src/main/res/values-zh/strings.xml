@@ -6,4 +6,7 @@
     <string name="button">按钮</string>
     <string name="sensor">传感器</string>
     <string name="mysensor">我的传感器</string>
+    <string name="cpu">CPU</string>
+    <string name="gpu">GPU</string>
+    <string name="storage">内存</string>
 </resources>

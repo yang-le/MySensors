@@ -16,6 +16,8 @@ public class TableDisplayActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_table_display);
 
+        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+
         try {
             JSONArray array = new JSONArray(getIntent().getStringExtra("json"));
 
