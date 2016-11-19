@@ -1,4 +1,4 @@
-package me.yangle.mysensors;
+package me.yangle.myphone;
 
 import org.junit.Test;
 

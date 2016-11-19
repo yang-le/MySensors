@@ -1,4 +1,4 @@
-package me.yangle.mysensors;
+package me.yangle.myphone;
 
 import android.content.Context;
 import android.support.test.InstrumentationRegistry;
@@ -21,6 +21,6 @@ public class ExampleInstrumentedTest {
         // Context of the app under test.
         Context appContext = InstrumentationRegistry.getTargetContext();
 
-        assertEquals("me.yangle.mysensors", appContext.getPackageName());
+        assertEquals("me.yangle.myphone", appContext.getPackageName());
     }
 }

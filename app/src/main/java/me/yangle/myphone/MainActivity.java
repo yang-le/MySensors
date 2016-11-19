@@ -1,4 +1,4 @@
-package me.yangle.mysensors;
+package me.yangle.myphone;
 
 import android.content.Intent;
 import android.hardware.Sensor;
@@ -6,6 +6,7 @@ import android.hardware.SensorManager;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.SparseArray;
+import android.view.View;
 
 import org.json.JSONArray;
 
@@ -21,7 +22,9 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+    }
 
+    public void onSensorBtnClick(View v) {
         // for sensorType to String
         SparseArray<String> typeString = new SparseArray<>();
 
@@ -44,6 +47,8 @@ public class MainActivity extends AppCompatActivity {
         }
 
         JSONArray array = new JSONArray();
+
+        array.put(getString(R.string.mysensor));
 
         JSONArray title = new JSONArray();
         title.put(getString(R.string.type));

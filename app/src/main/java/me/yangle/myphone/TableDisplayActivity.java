@@ -1,4 +1,4 @@
-package me.yangle.mysensors;
+package me.yangle.myphone;
 
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
@@ -19,8 +19,10 @@ public class TableDisplayActivity extends AppCompatActivity {
         try {
             JSONArray array = new JSONArray(getIntent().getStringExtra("json"));
 
+            setTitle(array.getString(0));
+
             ViewGroup layout = (ViewGroup) findViewById(R.id.activity_table_display);
-            for (int i = 0; i < array.length(); ++i) {
+            for (int i = 1; i < array.length(); ++i) {
                 JSONArray obj = array.getJSONArray(i);
 
                 TableRow row = new TableRow(this);
