@@ -1,5 +1,6 @@
 package me.yangle.myphone;
 
+import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.view.ViewGroup;
@@ -9,14 +10,17 @@ import android.widget.TextView;
 import org.json.JSONArray;
 import org.json.JSONException;
 
-public class TableDisplayActivity extends AppCompatActivity {
+class TableDisplayActivity extends AppCompatActivity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_table_display);
 
-        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+        ActionBar actionBar = getSupportActionBar();
+        if (actionBar != null) {
+            actionBar.setDisplayHomeAsUpEnabled(true);
+        }
 
         try {
             JSONArray array = new JSONArray(getIntent().getStringExtra("json"));

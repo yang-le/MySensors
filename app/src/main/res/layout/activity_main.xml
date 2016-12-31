@@ -30,14 +30,16 @@ tools:context="me.yangle.myphone.TableDisplayActivity"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:id="@+id/button2"
-            android:layout_weight="1" />
+            android:layout_weight="1"
+            android:onClick="onCpuBtnClick" />
 
         <Button
             android:text="@string/gpu"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:id="@+id/button3"
-            android:layout_weight="1" />
+            android:layout_weight="1"
+            android:onClick="onGpuBtnClick" />
     </LinearLayout>
     <LinearLayout
         android:orientation="horizontal"
@@ -49,7 +51,8 @@ tools:context="me.yangle.myphone.TableDisplayActivity"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:id="@+id/button4"
-            android:layout_weight="1" />
+            android:layout_weight="1"
+            android:onClick="onStorageBtnClick" />
 
         <Button
             android:text="@string/button"
@@ -96,7 +99,7 @@ tools:context="me.yangle.myphone.TableDisplayActivity"
     <RelativeLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:gravity="bottom|right">
+        android:gravity="bottom|end">
 
         <android.support.design.widget.FloatingActionButton
             android:layout_width="wrap_content"

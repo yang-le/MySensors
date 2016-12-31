@@ -22,6 +22,7 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+        OclHelper.Hello();
     }
 
     public void onSensorBtnClick(View v) {
@@ -70,6 +71,21 @@ public class MainActivity extends AppCompatActivity {
         Intent intent = new Intent(this, TableDisplayActivity.class);
         intent.putExtra("json", array.toString());
         startActivity(intent);
+    }
+
+    public void onCpuBtnClick(View v)
+    {
+        finish();
+    }
+
+    public void onGpuBtnClick(View v)
+    {
+        finish();
+    }
+
+    public void onStorageBtnClick(View v)
+    {
+        finish();
     }
 
     public void onQuitBtnClick(View v)
