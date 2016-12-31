@@ -17,7 +17,9 @@ add_library( # Specifies the name of the library.
              SHARED
 
              # Provides a relative path to your source file(s).
-             src/main/jni/oclHelper.c )
+             src/main/jni/oclHelper.c
+             src/main/jni/clutil.c
+             src/main/jni/libopencl.c )
 
 # Specifies a path to native header files.
 include_directories(src/main/jni/)
