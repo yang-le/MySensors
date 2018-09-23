@@ -23,5 +23,5 @@
                 android:value="me.yangle.myphone.MainActivity" />
         </activity>
     </application>
-
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
 </manifest>

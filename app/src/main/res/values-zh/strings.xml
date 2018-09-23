@@ -5,8 +5,13 @@
     <string name="type">类型</string>
     <string name="button">按钮</string>
     <string name="sensor">传感器</string>
-    <string name="mysensor">我的传感器</string>
-    <string name="cpu">CPU</string>
-    <string name="gpu">GPU</string>
+    <string name="cpu">处理器</string>
+    <string name="gpu">显卡</string>
     <string name="storage">内存</string>
+    <string name="vendor">制造商</string>
+    <string name="gps">卫星定位</string>
+    <string name="svid">编号</string>
+    <string name="gps_open">GPS开启</string>
+    <string name="gps_close">GPS关闭</string>
+    <string name="gps_no_signal">未接收到GPS信号</string>
 </resources>

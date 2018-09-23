@@ -55,11 +55,12 @@ tools:context="me.yangle.myphone.TableDisplayActivity"
             android:onClick="onStorageBtnClick" />
 
         <Button
-            android:text="@string/button"
+            android:id="@+id/button5"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:id="@+id/button5"
-            android:layout_weight="1" />
+            android:layout_weight="1"
+            android:onClick="onGpsBtnClick"
+            android:text="@string/gps" />
 
         <Button
             android:text="@string/button"

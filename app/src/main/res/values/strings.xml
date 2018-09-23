@@ -2,10 +2,15 @@
     <string name="app_name">My Phone</string>
     <string name="name">Name</string>
     <string name="type">Type</string>
+    <string name="vendor">Vendor</string>
     <string name="button">Button</string>
     <string name="sensor">Sensor</string>
-    <string name="mysensor">MySensor</string>
     <string name="cpu">CPU</string>
     <string name="gpu">GPU</string>
     <string name="storage">Storage</string>
+    <string name="gps">GPS</string>
+    <string name="svid">svid</string>
+    <string name="gps_open">GPS is open</string>
+    <string name="gps_close">GPS is close</string>
+    <string name="gps_no_signal">GPS signal is not received</string>
 </resources>
