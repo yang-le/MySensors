@@ -9,9 +9,19 @@
     <string name="gpu">显卡</string>
     <string name="storage">内存</string>
     <string name="vendor">制造商</string>
-    <string name="gps">卫星定位</string>
+    <string name="gps">GPS</string>
     <string name="svid">编号</string>
     <string name="gps_open">GPS开启</string>
     <string name="gps_close">GPS关闭</string>
     <string name="gps_no_signal">未接收到GPS信号</string>
+    <string name="unknow">未知</string>
+    <string name="gps_beidou">北斗</string>
+    <string name="gps_sbas">星基增强系统</string>
+    <string name="gps_qzss">准天顶卫星系统</string>
+    <string name="gps_glonass">格洛纳斯</string>
+    <string name="gps_galileo">伽利略</string>
+    <string name="gps_azimuth">方位角</string>
+    <string name="gps_carrier_frequency">载波频率</string>
+    <string name="gps_cn">载波/噪声比</string>
+    <string name="gps_elevation">仰角</string>
 </resources>

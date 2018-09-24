@@ -5,10 +5,11 @@ import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.hardware.Sensor;
 import android.hardware.SensorManager;
-import android.location.GnssMeasurementsEvent;
 import android.location.GnssStatus;
+import android.location.Location;
+import android.location.LocationListener;
 import android.location.LocationManager;
-import android.support.annotation.NonNull;
+import android.provider.Settings;
 import android.support.v4.app.ActivityCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
@@ -16,6 +17,7 @@ import android.view.View;
 import android.widget.Toast;
 
 import org.json.JSONArray;
+import org.json.JSONException;
 
 import java.util.List;
 
@@ -28,14 +30,7 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-
-        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-            ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, 0);
-        } else {
-            regGpsStatusCallback();
-        }
-
-        OclHelper.Hello();
+        //OclHelper.Hello();
     }
 
     public void onSensorBtnClick(View v) {
@@ -79,66 +74,102 @@ public class MainActivity extends AppCompatActivity {
         finish();
     }
 
-    private void regGpsStatusCallback()
-    {
-        LocationManager locationManager = (LocationManager) getSystemService(LOCATION_SERVICE);
-        try {
-            locationManager.registerGnssStatusCallback(new GnssStatus.Callback() {
-                @Override
-                public void onSatelliteStatusChanged(GnssStatus status) {
-                    super.onSatelliteStatusChanged(status);
-
-                    gpsStatus = new JSONArray();
-                    gpsStatus.put(getString(R.string.gps));
-
-                    JSONArray title = new JSONArray();
-                    title.put(getString(R.string.type));
-                    title.put(getString(R.string.svid));
-                    gpsStatus.put(title);
-
-                    for (int i = 0; i < status.getSatelliteCount(); ++i)
-                    {
-                        JSONArray obj = new JSONArray();
-                        obj.put(status.getConstellationType(i));
-                        obj.put(status.getSvid(i));
-                        gpsStatus.put(obj);
-                    }
-                }
-
-                @Override
-                public void onStarted() {
-                    super.onStarted();
-                    Toast.makeText(MainActivity.this ,getString(R.string.gps_open), Toast.LENGTH_SHORT).show();
-                }
-
-                @Override
-                public void onStopped() {
-                    super.onStopped();
-                    Toast.makeText(MainActivity.this ,getString(R.string.gps_close), Toast.LENGTH_SHORT).show();
-                }
-            });
-        } catch (SecurityException e){
-            e.printStackTrace();
-        };
-    }
-
     public void onGpsBtnClick(View v) {
+        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, 0);
+            return;
+        }
+
         LocationManager locationManager = (LocationManager) getSystemService(LOCATION_SERVICE);
-        // TODO request location
+        if (!locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER)) {
+            Toast.makeText(this, getString(R.string.gps_no_signal), Toast.LENGTH_SHORT).show();
+            Intent intent = new Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS);
+            startActivityForResult(intent, 0);
+            return;
+        }
+
+        locationManager.registerGnssStatusCallback(new GnssStatus.Callback() {
+            @Override
+            public void onSatelliteStatusChanged(GnssStatus status) {
+                super.onSatelliteStatusChanged(status);
+
+                gpsStatus = new JSONArray();
+                gpsStatus.put(getString(R.string.gps));
+
+                JSONArray title = new JSONArray();
+                title.put(getString(R.string.type));
+                title.put(getString(R.string.svid));
+                title.put(getString(R.string.gps_azimuth));
+                title.put(getString(R.string.gps_elevation));
+                title.put(getString(R.string.gps_carrier_frequency));
+                title.put(getString(R.string.gps_cn));
+                gpsStatus.put(title);
+
+                String type[] = {
+                        getString(R.string.unknow),
+                        getString(R.string.gps),
+                        getString(R.string.gps_sbas),
+                        getString(R.string.gps_glonass),
+                        getString(R.string.gps_qzss),
+                        getString(R.string.gps_beidou),
+                        getString(R.string.gps_galileo)
+                };
+
+                for (int i = 0; i < status.getSatelliteCount(); ++i) {
+                    JSONArray obj = new JSONArray();
+                    obj.put(type[status.getConstellationType(i)]);
+                    obj.put(status.getSvid(i));
+                    try {
+                        obj.put(status.getAzimuthDegrees(i));
+                        obj.put(status.getElevationDegrees(i));
+                        obj.put(status.hasCarrierFrequencyHz(i) ? status.getCarrierFrequencyHz(i) : "N/A");
+                        obj.put(status.getCn0DbHz(i));
+                    } catch (JSONException e) {
+                        e.printStackTrace();
+                    }
+                    gpsStatus.put(obj);
+                }
+            }
+
+            @Override
+            public void onStarted() {
+                super.onStarted();
+            }
+
+            @Override
+            public void onStopped() {
+                super.onStopped();
+            }
+        });
+
+        locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 1000, 0, new LocationListener() {
+            @Override
+            public void onLocationChanged(Location location) {
+
+            }
+
+            @Override
+            public void onStatusChanged(String s, int i, Bundle bundle) {
+
+            }
+
+            @Override
+            public void onProviderEnabled(String s) {
+                Toast.makeText(MainActivity.this, getString(R.string.gps_open), Toast.LENGTH_SHORT).show();
+            }
+
+            @Override
+            public void onProviderDisabled(String s) {
+                Toast.makeText(MainActivity.this, getString(R.string.gps_close), Toast.LENGTH_SHORT).show();
+            }
+        });
+
         if (gpsStatus != null) {
             Intent intent = new Intent(this, TableDisplayActivity.class);
             intent.putExtra("json", gpsStatus.toString());
             startActivity(intent);
         } else {
             Toast.makeText(this ,getString(R.string.gps_no_signal), Toast.LENGTH_SHORT).show();
-        }
-    }
-
-    @Override
-    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
-        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
-        if (grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-            regGpsStatusCallback();
         }
     }
 
