@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">我的手机</string>
+    <string name="name">名称</string>
+    <string name="type">类型</string>
+    <string name="button">按钮</string>
+    <string name="sensor">传感器</string>
+    <string name="cpu">处理器</string>
+    <string name="gpu">显卡</string>
+    <string name="memory">内存</string>
+    <string name="vendor">制造商</string>
+    <string name="gps">GPS</string>
+    <string name="svid">编号</string>
+    <string name="gps_open">GPS开启</string>
+    <string name="gps_close">GPS关闭</string>
+    <string name="gps_no_signal">未接收到GPS信号</string>
+    <string name="unknow">未知</string>
+    <string name="gps_beidou">北斗</string>
+    <string name="gps_sbas">星基增强系统</string>
+    <string name="gps_qzss">准天顶卫星系统</string>
+    <string name="gps_glonass">格洛纳斯</string>
+    <string name="gps_galileo">伽利略</string>
+    <string name="gps_azimuth">方位角</string>
+    <string name="gps_carrier_frequency">载波频率</string>
+    <string name="gps_cn">载波/噪声比</string>
+    <string name="gps_elevation">仰角</string>
+    <string name="camera">相机</string>
+    <string name="id">编号</string>
+    <string name="parameter">参数</string>
+    <string name="min">最小</string>
+    <string name="max">最大</string>
+    <string name="facing">"朝向 "</string>
+    <string name="front">前</string>
+    <string name="back">后</string>
+    <string name="external">外部</string>
+    <string name="AE">自动曝光补偿</string>
+    <string name="AP">光圈</string>
+    <string name="FC">焦距</string>
+    <string name="ET">曝光时间</string>
+    <string name="ISO">ISO</string>
+</resources>
