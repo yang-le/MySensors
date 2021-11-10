@@ -1,64 +1,42 @@
 package me.yangle.myphone.ui
 
-import android.content.res.Configuration.UI_MODE_NIGHT_YES
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.*
+import androidx.compose.material.Divider
+import androidx.compose.material.Icon
+import androidx.compose.material.Surface
+import androidx.compose.material.Text
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.*
 import androidx.compose.material.icons.twotone.Memory
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.navigation.NavController
-import androidx.navigation.compose.rememberNavController
-import kotlinx.coroutines.launch
-import me.yangle.myphone.ui.theme.MyPhoneTheme
 
+@Preview
 @Composable
 fun Drawer(
-    drawerState: DrawerState = rememberDrawerState(DrawerValue.Closed),
-    navController: NavController = rememberNavController()
+    hasCamera: Boolean = true,
+    hasGps: Boolean = true,
+    onClick: ((key: String) -> Unit)? = null
 ) {
-    val scope = rememberCoroutineScope()
-
     Surface {
         Column(Modifier.verticalScroll(rememberScrollState())) {
-            DrawerItem(Icons.Rounded.PhoneAndroid, "My Phone") {
-                scope.launch { drawerState.close() }
-                navController.navigate("My Phone") {
-                    popUpTo("My Phone") { inclusive = true }
-                    launchSingleTop = true
-                }
-            }
+            DrawerItem(Icons.Rounded.PhoneAndroid, "My Phone", onClick)
             Divider()
-            DrawerItem(Icons.Rounded.Sensors, "Sensors") {
-                scope.launch { drawerState.close() }
-                navController.navigate("Sensors") {
-                    launchSingleTop = true
-                }
-            }
-            DrawerItem(Icons.Rounded.Camera, "Camera") {
-                scope.launch { drawerState.close() }
-                navController.navigate("Camera") {
-                    launchSingleTop = true
-                }
-            }
-            DrawerItem(Icons.Rounded.Memory, "CPU") {}
-            DrawerItem(Icons.TwoTone.Memory, "GPU") {}
-            DrawerItem(Icons.Rounded.Storage, "Storage") {}
-            DrawerItem(Icons.Rounded.Satellite, "GPS") {
-                scope.launch { drawerState.close() }
-                navController.navigate("GPS") {
-                    launchSingleTop = true
-                }
-            }
+            if (hasCamera)
+                DrawerItem(Icons.Rounded.Camera, "Camera", onClick)
+            if (hasGps)
+                DrawerItem(Icons.Rounded.Satellite, "GPS", onClick)
+            DrawerItem(Icons.Rounded.Sensors, "Sensors", onClick)
+            DrawerItem(Icons.Rounded.Memory, "CPU", onClick)
+            DrawerItem(Icons.TwoTone.Memory, "GPU", onClick)
+            DrawerItem(Icons.Rounded.Storage, "Storage", onClick)
         }
     }
 }
@@ -67,13 +45,14 @@ fun Drawer(
 private fun DrawerItem(
     icon: ImageVector? = null,
     text: String? = null,
-    onClick: (() -> Unit)? = null
+    onClick: ((key: String) -> Unit)? = null,
+    key: String = text ?: ""
 ) {
     val modifier = if (onClick != null)
         Modifier
             .height(64.dp)
             .fillMaxSize()
-            .clickable(onClick = onClick)
+            .clickable { onClick(key) }
     else
         Modifier
             .height(64.dp)
@@ -89,14 +68,5 @@ private fun DrawerItem(
         text?.let {
             Text(it, Modifier.padding(16.dp))
         }
-    }
-}
-
-@Preview(name = "Light theme")
-@Preview(name = "Dark theme", uiMode = UI_MODE_NIGHT_YES)
-@Composable
-private fun Preview() {
-    MyPhoneTheme {
-        Drawer()
     }
 }

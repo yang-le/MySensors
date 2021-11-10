@@ -10,10 +10,34 @@ import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.tooling.preview.PreviewParameter
+import androidx.compose.ui.tooling.preview.PreviewParameterProvider
 import androidx.compose.ui.unit.dp
 
+class DataProvider : PreviewParameterProvider<List<List<String>>> {
+    private val tableData = (1..10).map {
+        listOf("$it", "Item $it")
+    }
+    override val values = listOf(tableData).asSequence()
+}
+
+@Preview
 @Composable
-fun Table(data: List<List<String>>, header: List<String>? = null) {
+fun Table(
+    @PreviewParameter(DataProvider::class) data: List<List<String>>,
+    firstLineHeader: Boolean = true
+) {
+    if (firstLineHeader)
+        Table(data.subList(1, data.size), data[0])
+    else
+        Table(data, null)
+}
+
+@Composable
+fun Table(
+    data: List<List<String>>,
+    header: List<String>?
+) {
     Column {
         header?.let {
             Row {
@@ -43,13 +67,4 @@ fun Table(data: List<List<String>>, header: List<String>? = null) {
             }
         }
     }
-}
-
-@Preview
-@Composable
-fun TablePreview() {
-    val tableData = (1..100).map {
-        listOf("$it", "Item $it")
-    }
-    Table(tableData, listOf("index", "item"))
 }

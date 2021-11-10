@@ -5,7 +5,6 @@ import android.app.Activity
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
-import android.location.GnssStatus
 import android.location.LocationManager
 import android.provider.Settings
 import androidx.activity.compose.rememberLauncherForActivityResult
@@ -14,63 +13,80 @@ import androidx.compose.material.Button
 import androidx.compose.material.Snackbar
 import androidx.compose.material.Text
 import androidx.compose.runtime.*
-import androidx.compose.ui.platform.LocalContext
 import androidx.core.app.ActivityCompat
 
-@Composable
-fun Gps() {
-    val context = LocalContext.current
-    val locationManager =
-        context.getSystemService(Context.LOCATION_SERVICE) as LocationManager
+class GpsState(
+    permissionGranted: Boolean,
+    providerEnabled: Boolean,
+    val showRationale: Boolean
+) {
+    var permissionGranted by mutableStateOf(permissionGranted)
+        private set
 
-    var permissionGranted by remember {
-        mutableStateOf(
-            ActivityCompat.checkSelfPermission(
+    var permissionDenied by mutableStateOf(false)
+        private set
+
+    var providerEnabled by mutableStateOf(providerEnabled)
+
+    fun onRequestPermissionResult(result: Boolean) {
+        permissionGranted = result
+        permissionDenied = !result
+    }
+}
+
+@Composable
+fun rememberGpsState(context: Context): GpsState {
+    val locationManager = context.getSystemService(Context.LOCATION_SERVICE) as LocationManager
+    return remember {
+        GpsState(
+            permissionGranted = PackageManager.PERMISSION_GRANTED == ActivityCompat.checkSelfPermission(
                 context,
                 Manifest.permission.ACCESS_FINE_LOCATION
-            ) == PackageManager.PERMISSION_GRANTED
-        )
-    }
-
-    val requestPermissionLauncher =
-        rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) {
-            permissionGranted = it
-        }
-
-    var providerEnabled by remember {
-        mutableStateOf(
-            locationManager.isProviderEnabled(
-                LocationManager.GPS_PROVIDER
+            ),
+            providerEnabled = locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER),
+            showRationale = ActivityCompat.shouldShowRequestPermissionRationale(
+                context as Activity,
+                Manifest.permission.ACCESS_FINE_LOCATION
             )
         )
     }
+}
 
-    val startActivityLauncher =
-        rememberLauncherForActivityResult(ActivityResultContracts.StartActivityForResult()) {
-            providerEnabled = locationManager.isProviderEnabled(
-                LocationManager.GPS_PROVIDER
-            )
-        }
+@Composable
+fun Gps(
+    locationManager: LocationManager, gpsState: GpsState
+) {
+    val requestPermissionLauncher = rememberLauncherForActivityResult(
+        ActivityResultContracts.RequestPermission(),
+        gpsState::onRequestPermissionResult
+    )
 
-    if (!permissionGranted) {
-        Snackbar(action = {
-            Button(onClick = {
-                requestPermissionLauncher.launch(Manifest.permission.ACCESS_FINE_LOCATION)
+    val startActivityLauncher = rememberLauncherForActivityResult(
+        ActivityResultContracts.StartActivityForResult()
+    ) {
+        gpsState.providerEnabled = locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER)
+    }
+
+    if (gpsState.permissionDenied) {
+        Text("You denied our request, if you want use this function, please consider allow the Location Permission from system settings.")
+    } else if (!gpsState.permissionGranted) {
+        if (gpsState.showRationale) {
+            Snackbar(action = {
+                Button(onClick = {
+                    requestPermissionLauncher.launch(Manifest.permission.ACCESS_FINE_LOCATION)
+                }) {
+                    Text("OK")
+                }
             }) {
-                Text("OK")
+                Text("Location access is required for this function, please give us the permission")
             }
-        }) {
-            if (ActivityCompat.shouldShowRequestPermissionRationale(
-                    context as Activity,
-                    Manifest.permission.ACCESS_FINE_LOCATION
-                )
-            ) {
-                Text("Location access is required because blah blah blah..., please give us the permission")
-            } else {
-                Text("Location not available, please give us the permission")
+        } else {
+            // LaunchedEffect or call in a Button callback? it's a problem.
+            LaunchedEffect(requestPermissionLauncher) {
+                requestPermissionLauncher.launch(Manifest.permission.ACCESS_FINE_LOCATION)
             }
         }
-    } else if (!providerEnabled) {
+    } else if (!gpsState.providerEnabled) {
         Snackbar(action = {
             Button(onClick = { startActivityLauncher.launch(Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS)) }) {
                 Text("OK")
@@ -78,17 +94,14 @@ fun Gps() {
         }) {
             Text("Please open GPS switch")
         }
-    } else {
-        Snackbar(action = {
-            Button(onClick = {
-                locationManager.registerGnssStatusCallback(object : GnssStatus.Callback() {
-
-                }, null)
-            }) {
-                Text("OK")
-            }
-        }) {
-            Text("Location permission available")
-        }
     }
+    // observe data and update
+//    else {
+//        locationManager.registerGnssStatusCallback(callback, null)
+//        locationManager.requestLocationUpdates(
+//            LocationManager.GPS_PROVIDER, 1000, 0f
+//        ) {
+//
+//        }
+//    }
 }

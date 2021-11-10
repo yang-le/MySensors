@@ -1,5 +1,10 @@
 package me.yangle.myphone
 
+import android.content.Context
+import android.content.pm.PackageManager
+import android.hardware.SensorManager
+import android.hardware.camera2.CameraManager
+import android.location.LocationManager
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -19,14 +24,14 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         setContent {
             MyPhoneTheme {
-                HomeScreen()
+                HomeScreen(this)
             }
         }
     }
 }
 
 @Composable
-fun HomeScreen() {
+fun HomeScreen(context: Context) {
     val scaffoldState = rememberScaffoldState()
     val scope = rememberCoroutineScope()
     val navController = rememberNavController()
@@ -35,7 +40,20 @@ fun HomeScreen() {
     Scaffold(
         scaffoldState = scaffoldState,
         drawerContent = {
-            Drawer(scaffoldState.drawerState, navController)
+            Drawer(
+                context.packageManager.hasSystemFeature(
+                    PackageManager.FEATURE_CAMERA_ANY
+                ), context.packageManager.hasSystemFeature(
+                    PackageManager.FEATURE_LOCATION_GPS
+                )
+            ) { key ->
+                scope.launch { scaffoldState.drawerState.close() }
+                navController.navigate(key) {
+                    launchSingleTop = true
+                    if (key == "My Phone")
+                        popUpTo("My Phone")
+                }
+            }
         },
         topBar = {
             TopAppBar(
@@ -53,18 +71,30 @@ fun HomeScreen() {
         },
     ) {
         NavHost(navController = navController, startDestination = "My Phone") {
-            composable("My Phone") { title = "My Phone" }
+            composable("My Phone") {
+                title = "My Phone"
+            }
+            composable("CPU") {
+                title = "CPU"
+            }
+            composable("GPU") {
+                title = "GPU"
+            }
+            composable("Storage") {
+                title = "Storage"
+            }
             composable("Sensors") {
                 title = "Sensors"
-                Sensors()
+                Sensors(context.getSystemService(Context.SENSOR_SERVICE) as SensorManager)
             }
             composable("GPS") {
                 title = "GPS"
-                Gps()
+                val gpsState = rememberGpsState(context)
+                Gps(context.getSystemService(Context.LOCATION_SERVICE) as LocationManager, gpsState)
             }
             composable("Camera") {
                 title = "Camera"
-                Camera()
+                Camera(context.getSystemService(Context.CAMERA_SERVICE) as CameraManager)
             }
         }
     }
