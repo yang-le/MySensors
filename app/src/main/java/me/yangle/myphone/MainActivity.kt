@@ -1,5 +1,6 @@
 package me.yangle.myphone
 
+import android.Manifest
 import android.content.Context
 import android.content.pm.PackageManager
 import android.hardware.SensorManager
@@ -89,8 +90,10 @@ fun HomeScreen(context: Context) {
             }
             composable("GPS") {
                 title = "GPS"
-                val gpsState = rememberGpsState(context)
-                Gps(context.getSystemService(Context.LOCATION_SERVICE) as LocationManager, gpsState)
+                Gps(
+                    context.getSystemService(Context.LOCATION_SERVICE) as LocationManager,
+                    rememberPermissionState(context, Manifest.permission.ACCESS_FINE_LOCATION)
+                )
             }
             composable("Camera") {
                 title = "Camera"
