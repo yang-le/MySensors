@@ -14,7 +14,9 @@ import androidx.compose.material.Snackbar
 import androidx.compose.material.Text
 import androidx.compose.runtime.*
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
+import androidx.lifecycle.viewmodel.compose.viewModel
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
@@ -24,6 +26,7 @@ import me.yangle.myphone.ui.Table
 
 class GpsViewModel(private val locationManager: LocationManager) : ViewModel() {
     data class GnssData(
+        val svid: Int,
         val type: Int,
         val azimuth: Float,
         val elevation: Float,
@@ -59,13 +62,15 @@ class GpsViewModel(private val locationManager: LocationManager) : ViewModel() {
         viewModelScope.launch {
             getGnssStatus(locationManager).collect { status ->
                 (0 until status.satelliteCount).forEach {
-                    _gnssData[status.getSvid(it)] = GnssData(
-                        status.getConstellationType(it),
-                        status.getAzimuthDegrees(it),
-                        status.getElevationDegrees(it),
-                        status.getCarrierFrequencyHz(it),
-                        status.getCn0DbHz(it)
-                    )
+                    _gnssData[status.getConstellationType(it) * 256 + status.getSvid(it)] =
+                        GnssData(
+                            status.getSvid(it),
+                            status.getConstellationType(it),
+                            status.getAzimuthDegrees(it),
+                            status.getElevationDegrees(it),
+                            status.getCarrierFrequencyHz(it),
+                            status.getCn0DbHz(it)
+                        )
                 }
             }
         }
@@ -127,8 +132,14 @@ fun Gps(
             Text("Please open GPS switch")
         }
     } else {
-        val viewModel = remember { GpsViewModel(locationManager) }
-        Table(viewModel.gnssData.map { (index, data) ->
+        val viewModel: GpsViewModel = viewModel(
+            factory = object : ViewModelProvider.Factory {
+                override fun <T : ViewModel?> create(modelClass: Class<T>): T {
+                    return GpsViewModel(locationManager) as T
+                }
+            }
+        )
+        Table(viewModel.gnssData.values.map { data ->
             listOf(
                 when (data.type) {
                     GnssStatus.CONSTELLATION_GPS -> "GPS"
@@ -140,7 +151,7 @@ fun Gps(
                     GnssStatus.CONSTELLATION_IRNSS -> "IRNSS"
                     else -> "unknow"
                 },
-                index.toString(),
+                data.svid.toString(),
                 data.azimuth.toString(),
                 data.elevation.toString(),
                 data.carrierFrequency.toString(),
