@@ -1,13 +1,15 @@
 package me.yangle.myphone
 
+import android.content.Context
 import android.hardware.camera2.CameraCharacteristics
 import android.hardware.camera2.CameraManager
 import android.hardware.camera2.CameraMetadata
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.platform.LocalContext
 import me.yangle.myphone.ui.Table
 
 @Composable
-fun Camera(cameraManager: CameraManager) {
+fun Camera(cameraManager: CameraManager = LocalContext.current.getSystemService(Context.CAMERA_SERVICE) as CameraManager) {
     fun <T> getCameraCharacteristics(key: CameraCharacteristics.Key<T>): List<String> {
         return cameraManager.cameraIdList.map {
             val value = cameraManager.getCameraCharacteristics(it).get(key)

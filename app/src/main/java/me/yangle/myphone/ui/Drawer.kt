@@ -1,5 +1,6 @@
 package me.yangle.myphone.ui
 
+import android.content.pm.PackageManager
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.rememberScrollState
@@ -11,13 +12,18 @@ import androidx.compose.material.icons.twotone.Memory
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
 
 @Preview
 @Composable
 fun Drawer(
-    hasCamera: Boolean = true,
-    hasGps: Boolean = true,
+    hasCamera: Boolean = LocalContext.current.packageManager.hasSystemFeature(
+        PackageManager.FEATURE_CAMERA_ANY
+    ),
+    hasGps: Boolean = LocalContext.current.packageManager.hasSystemFeature(
+        PackageManager.FEATURE_LOCATION_GPS
+    ),
     onClick: ((key: String) -> Unit)? = null
 ) {
     Surface {

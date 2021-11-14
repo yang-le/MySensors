@@ -1,5 +1,6 @@
 package me.yangle.myphone
 
+import android.content.Context
 import android.hardware.Sensor
 import android.hardware.SensorEvent
 import android.hardware.SensorEventListener
@@ -8,6 +9,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.material.Button
 import androidx.compose.material.Text
 import androidx.compose.runtime.*
+import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
@@ -103,7 +105,7 @@ class SensorViewModel(
 }
 
 @Composable
-fun Sensors(sensorManager: SensorManager) {
+fun Sensors(sensorManager: SensorManager = LocalContext.current.getSystemService(Context.SENSOR_SERVICE) as SensorManager) {
     var showCompass by remember { mutableStateOf(false) }
     var sensors by remember { mutableStateOf(emptyList<Sensor>()) }
 

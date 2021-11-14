@@ -1,10 +1,5 @@
 package me.yangle.myphone
 
-import android.content.Context
-import android.content.pm.PackageManager
-import android.hardware.SensorManager
-import android.hardware.camera2.CameraManager
-import android.location.LocationManager
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -24,14 +19,14 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         setContent {
             MyPhoneTheme {
-                HomeScreen(this)
+                HomeScreen()
             }
         }
     }
 }
 
 @Composable
-fun HomeScreen(context: Context) {
+fun HomeScreen() {
     val scaffoldState = rememberScaffoldState()
     val scope = rememberCoroutineScope()
     val navController = rememberNavController()
@@ -40,13 +35,7 @@ fun HomeScreen(context: Context) {
     Scaffold(
         scaffoldState = scaffoldState,
         drawerContent = {
-            Drawer(
-                context.packageManager.hasSystemFeature(
-                    PackageManager.FEATURE_CAMERA_ANY
-                ), context.packageManager.hasSystemFeature(
-                    PackageManager.FEATURE_LOCATION_GPS
-                )
-            ) { key ->
+            Drawer { key ->
                 scope.launch { scaffoldState.drawerState.close() }
                 navController.navigate(key) {
                     launchSingleTop = true
@@ -85,15 +74,15 @@ fun HomeScreen(context: Context) {
             }
             composable("Sensors") {
                 title = "Sensors"
-                Sensors(context.getSystemService(Context.SENSOR_SERVICE) as SensorManager)
+                Sensors()
             }
             composable("GPS") {
                 title = "GPS"
-                Gps(context.getSystemService(Context.LOCATION_SERVICE) as LocationManager)
+                Gps()
             }
             composable("Camera") {
                 title = "Camera"
-                Camera(context.getSystemService(Context.CAMERA_SERVICE) as CameraManager)
+                Camera()
             }
         }
     }

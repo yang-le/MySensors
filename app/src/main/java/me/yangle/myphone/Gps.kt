@@ -1,17 +1,22 @@
 package me.yangle.myphone
 
 import android.annotation.SuppressLint
+import android.content.Context
 import android.content.Intent
 import android.location.GnssStatus
 import android.location.LocationListener
 import android.location.LocationManager
+import android.net.Uri
 import android.provider.Settings
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.compose.material.Button
-import androidx.compose.material.Snackbar
-import androidx.compose.material.Text
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.material.Icon
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.rounded.GpsOff
 import androidx.compose.runtime.*
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
@@ -26,6 +31,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
+import me.yangle.myphone.ui.SimpleAlertDialog
 import me.yangle.myphone.ui.Table
 
 class GpsViewModel(private val locationManager: LocationManager) : ViewModel() {
@@ -89,7 +95,7 @@ class GpsViewModel(private val locationManager: LocationManager) : ViewModel() {
 @OptIn(ExperimentalPermissionsApi::class)
 @Composable
 fun Gps(
-    locationManager: LocationManager,
+    locationManager: LocationManager = LocalContext.current.getSystemService(Context.LOCATION_SERVICE) as LocationManager,
     gpsPermissionState: PermissionState = rememberPermissionState(permission = android.Manifest.permission.ACCESS_FINE_LOCATION)
 ) {
     var providerEnabled by remember {
@@ -100,27 +106,25 @@ fun Gps(
         )
     }
 
-    val startActivityLauncher = rememberLauncherForActivityResult(
-        ActivityResultContracts.StartActivityForResult(),
-
-        ) {
-        providerEnabled = locationManager.isProviderEnabled(
-            LocationManager.GPS_PROVIDER
-        )
-    }
+    val startActivityLauncher =
+        rememberLauncherForActivityResult(ActivityResultContracts.StartActivityForResult()) {
+            providerEnabled = locationManager.isProviderEnabled(
+                LocationManager.GPS_PROVIDER
+            )
+        }
 
     PermissionRequired(
         permissionState = gpsPermissionState,
         permissionNotGrantedContent = {
             if (gpsPermissionState.shouldShowRationale) {
-                Snackbar(action = {
-                    Button(onClick = {
-                        gpsPermissionState.launchPermissionRequest()
-                    }) {
-                        Text("OK")
-                    }
-                }) {
-                    Text("Location access is required for this function, please give us the permission")
+                SimpleAlertDialog(
+                    title = "Permission required",
+                    text = "Location access is required for this function, please give us the permission.",
+                    confirmText = "OK",
+                    dismissText = "NO",
+                    dismissContent = { Icon(Icons.Rounded.GpsOff, null, Modifier.fillMaxSize()) }
+                ) {
+                    gpsPermissionState.launchPermissionRequest()
                 }
             } else {
                 // LaunchedEffect or call in a Button callback? it's a problem.
@@ -130,16 +134,31 @@ fun Gps(
             }
         },
         permissionNotAvailableContent = {
-            Text("You denied our request, if you want use this function, please consider allow the Location Permission from system settings.")
+            val packageName = LocalContext.current.packageName
+            SimpleAlertDialog(
+                title = "Permission denied",
+                text = "You denied our request, if you want use this function, please consider allow the Location Permission from system settings.",
+                confirmText = "OK",
+                dismissText = "NO",
+                dismissContent = { Icon(Icons.Rounded.GpsOff, null, Modifier.fillMaxSize()) }
+            ) {
+                startActivityLauncher.launch(
+                    Intent(
+                        Settings.ACTION_APPLICATION_DETAILS_SETTINGS,
+                        Uri.parse("package:$packageName")
+                    )
+                )
+            }
         }
     ) {
         if (!providerEnabled) {
-            Snackbar(action = {
-                Button(onClick = { startActivityLauncher.launch(Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS)) }) {
-                    Text("OK")
-                }
-            }) {
-                Text("Please open GPS switch")
+            SimpleAlertDialog(
+                title = "Please open GPS switch.",
+                confirmText = "OK",
+                dismissText = "NO",
+                dismissContent = { Icon(Icons.Rounded.GpsOff, null, Modifier.fillMaxSize()) }
+            ) {
+                startActivityLauncher.launch(Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS))
             }
         } else {
             val viewModel: GpsViewModel = viewModel(
