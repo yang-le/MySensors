@@ -5,9 +5,7 @@ import android.hardware.Sensor
 import android.hardware.SensorEvent
 import android.hardware.SensorEventListener
 import android.hardware.SensorManager
-import androidx.compose.foundation.layout.Column
-import androidx.compose.material.Button
-import androidx.compose.material.Text
+import androidx.activity.compose.BackHandler
 import androidx.compose.runtime.*
 import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.ViewModel
@@ -148,6 +146,7 @@ fun Sensors(sensorManager: SensorManager = LocalContext.current.getSystemService
         }
     } else {
         val viewModel: SensorViewModel = viewModel(
+            key = sensors[0].stringType,
             factory = object : ViewModelProvider.Factory {
                 override fun <T : ViewModel?> create(modelClass: Class<T>): T {
                     return SensorViewModel(sensorManager, sensors) as T
@@ -155,13 +154,9 @@ fun Sensors(sensorManager: SensorManager = LocalContext.current.getSystemService
             }
         )
 
-        Column {
-            Compass(viewModel.orientation)
-            Button({
-                showCompass = false
-            }) {
-                Text("Back")
-            }
+        Compass(viewModel.orientation)
+        BackHandler {
+            showCompass = false
         }
     }
 }

@@ -15,6 +15,7 @@ import androidx.compose.material.Icon
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.GpsOff
 import androidx.compose.runtime.*
+import androidx.compose.runtime.snapshots.SnapshotStateMap
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.ViewModel
@@ -48,7 +49,7 @@ class GpsViewModel(private val locationManager: LocationManager) : ViewModel() {
         }
     }
 
-    private val _gnssData = mutableStateMapOf<Int, GnssData>()
+    private val _gnssData = mutableStateMapOf<Int, SnapshotStateMap<Int, GnssData>>()
     val gnssData = _gnssData
 
     @OptIn(ExperimentalCoroutinesApi::class)
@@ -77,7 +78,12 @@ class GpsViewModel(private val locationManager: LocationManager) : ViewModel() {
         viewModelScope.launch {
             getGnssStatus(locationManager).collect { status ->
                 (0 until status.satelliteCount).forEach {
-                    _gnssData[status.getConstellationType(it) * 256 + status.getSvid(it)] =
+                    val type = status.getConstellationType(it)
+                    if (!_gnssData.containsKey(type)) {
+                        _gnssData[type] = mutableStateMapOf()
+                    }
+                    _gnssData[type]?.set(
+                        status.getSvid(it),
                         GnssData(
                             status.getSvid(it),
                             status.getConstellationType(it),
@@ -86,6 +92,7 @@ class GpsViewModel(private val locationManager: LocationManager) : ViewModel() {
                             if (status.hasCarrierFrequencyHz(it)) status.getCarrierFrequencyHz(it) else null,
                             status.getCn0DbHz(it)
                         )
+                    )
                 }
             }
         }
@@ -168,9 +175,9 @@ fun Gps(
                     }
                 }
             )
-            Table(viewModel.gnssData.values.sorted().map { data ->
+            Table(viewModel.gnssData.entries.associate { (type, value) ->
                 listOf(
-                    when (data.type) {
+                    when (type) {
                         GnssStatus.CONSTELLATION_GPS -> "GPS"
                         GnssStatus.CONSTELLATION_SBAS -> "SBAS"
                         GnssStatus.CONSTELLATION_GLONASS -> "GLONASS"
@@ -180,13 +187,22 @@ fun Gps(
                         GnssStatus.CONSTELLATION_IRNSS -> "IRNSS"
                         else -> "unknown"
                     },
-                    data.svid.toString(),
-                    data.azimuth.toString(),
-                    data.elevation.toString(),
-                    (data.carrierFrequency ?: "N/A").toString(),
-                    data.Cn0DbHz.toString(),
-                )
-            }, listOf("type", "svid", "azimuth", "elevation", "carrier frequency", "Cn0DbHz"))
+                    "svid",
+                    "azimuth",
+                    "elevation",
+                    "carrier frequency",
+                    "Cn0DbHz"
+                ) to value.values.map {
+                    listOf(
+                        "",
+                        it.svid.toString(),
+                        it.azimuth.toString(),
+                        it.elevation.toString(),
+                        (it.carrierFrequency ?: "N/A").toString(),
+                        it.Cn0DbHz.toString(),
+                    )
+                }
+            })
         }
     }
 }

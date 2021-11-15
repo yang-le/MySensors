@@ -29,7 +29,7 @@ class DataProvider : PreviewParameterProvider<List<List<String>>> {
 fun Table(
     @PreviewParameter(DataProvider::class) data: List<List<String>>,
     firstLineHeader: Boolean = true,
-    onClick: ((row: List<String>) -> Unit)? = null,
+    onClick: ((row: List<String>) -> Unit)? = null
 ) {
     if (firstLineHeader)
         Table(data.subList(1, data.size), data[0], onClick)
@@ -42,44 +42,55 @@ fun Table(
 fun Table(
     data: List<List<String>>,
     header: List<String>?,
-    onClick: ((row: List<String>) -> Unit)? = null,
-) = LazyColumn {
-    header?.let { row ->
-        stickyHeader {
-            Surface {
-                Column {
-                    Row(
-                        modifier = onClick?.let {
-                            Modifier.clickable { it(row) }
-                        } ?: Modifier
-                    ) {
-                        row.map {
-                            Text(
-                                text = it,
-                                modifier = Modifier
-                                    .padding(8.dp)
-                                    .weight(1f)
-                            )
+    onClick: ((row: List<String>) -> Unit)? = null
+) = Table(mapOf(header to data), onClick)
+
+@OptIn(ExperimentalFoundationApi::class)
+@Composable
+fun Table(
+    grouped: Map<List<String>?, List<List<String>>>,
+    onClick: ((row: List<String>) -> Unit)? = null
+) {
+    LazyColumn {
+        grouped.forEach { (header, data) ->
+            header?.let {
+                stickyHeader {
+                    Surface {
+                        Column {
+                            Row(
+                                modifier = onClick?.let {
+                                    Modifier.clickable { it(header) }
+                                } ?: Modifier
+                            ) {
+                                header.map {
+                                    Text(
+                                        text = it,
+                                        modifier = Modifier
+                                            .padding(8.dp)
+                                            .weight(1f)
+                                    )
+                                }
+                            }
+                            Divider()
                         }
                     }
-                    Divider()
                 }
             }
-        }
-    }
-    items(data) { row ->
-        Row(
-            modifier = onClick?.let {
-                Modifier.clickable { it(row) }
-            } ?: Modifier
-        ) {
-            row.map {
-                Text(
-                    text = it,
-                    modifier = Modifier
-                        .padding(8.dp)
-                        .weight(1f)
-                )
+            items(data) { row ->
+                Row(
+                    modifier = onClick?.let {
+                        Modifier.clickable { it(row) }
+                    } ?: Modifier
+                ) {
+                    row.map {
+                        Text(
+                            text = it,
+                            modifier = Modifier
+                                .padding(8.dp)
+                                .weight(1f)
+                        )
+                    }
+                }
             }
         }
     }
