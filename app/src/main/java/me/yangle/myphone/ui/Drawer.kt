@@ -33,7 +33,7 @@ fun Drawer(
             if (hasCamera)
                 DrawerItem(Icons.Rounded.Camera, "Camera", onClick)
             if (hasGps)
-                DrawerItem(Icons.Rounded.Satellite, "GPS", onClick)
+                DrawerItem(Icons.Rounded.Satellite, "GNSS", onClick)
             DrawerItem(Icons.Rounded.Sensors, "Sensors", onClick)
             DrawerItem(Icons.Rounded.Memory, "CPU", onClick)
             DrawerItem(Icons.TwoTone.Memory, "GPU", onClick)

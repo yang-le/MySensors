@@ -8,6 +8,7 @@ import android.location.LocationListener
 import android.location.LocationManager
 import android.net.Uri
 import android.provider.Settings
+import androidx.activity.compose.BackHandler
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.fillMaxSize
@@ -32,6 +33,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
+import me.yangle.myphone.ui.Compass
 import me.yangle.myphone.ui.SimpleAlertDialog
 import me.yangle.myphone.ui.Table
 
@@ -168,6 +170,10 @@ fun Gps(
                 startActivityLauncher.launch(Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS))
             }
         } else {
+            var showCompass by remember { mutableStateOf(false) }
+            val pos = remember { mutableStateOf(listOf(0f to 0f)) }
+            var type by remember { mutableStateOf(0) }
+
             val viewModel: GpsViewModel = viewModel(
                 factory = object : ViewModelProvider.Factory {
                     override fun <T : ViewModel?> create(modelClass: Class<T>): T {
@@ -175,34 +181,78 @@ fun Gps(
                     }
                 }
             )
-            Table(viewModel.gnssData.entries.associate { (type, value) ->
-                listOf(
-                    when (type) {
-                        GnssStatus.CONSTELLATION_GPS -> "GPS"
-                        GnssStatus.CONSTELLATION_SBAS -> "SBAS"
-                        GnssStatus.CONSTELLATION_GLONASS -> "GLONASS"
-                        GnssStatus.CONSTELLATION_QZSS -> "QZSS"
-                        GnssStatus.CONSTELLATION_BEIDOU -> "BEIDOU"
-                        GnssStatus.CONSTELLATION_GALILEO -> "GALILEO"
-                        GnssStatus.CONSTELLATION_IRNSS -> "IRNSS"
-                        else -> "unknown"
-                    },
-                    "svid",
-                    "azimuth",
-                    "elevation",
-                    "carrier frequency",
-                    "Cn0DbHz"
-                ) to value.values.map {
+            if (!showCompass) {
+                Table(viewModel.gnssData.entries.associate { (type, value) ->
                     listOf(
-                        "",
-                        it.svid.toString(),
-                        it.azimuth.toString(),
-                        it.elevation.toString(),
-                        (it.carrierFrequency ?: "N/A").toString(),
-                        it.Cn0DbHz.toString(),
-                    )
+                        constellationTypeToString(type),
+                        "svid",
+                        "azimuth",
+                        "elevation",
+                        "carrier frequency",
+                        "Cn0DbHz"
+                    ) to value.values.map {
+                        listOf(
+                            "",
+                            it.svid.toString(),
+                            it.azimuth.toString(),
+                            it.elevation.toString(),
+                            (it.carrierFrequency ?: "N/A").toString(),
+                            it.Cn0DbHz.toString(),
+                        )
+                    }
+                }) { row ->
+                    showCompass = true
+                    type = constellationStringToType(row[0])
+                    if (row[1] != "svid") {
+                        pos.value = listOf(row[3].toFloat() to row[2].toFloat())
+                    } else {
+                        val data = viewModel.gnssData[type]
+                        if (data != null) {
+                            pos.value = data.values.toList().map {
+                                it.elevation to it.azimuth
+                            }
+                        }
+                    }
                 }
-            })
+            } else {
+                Compass(constellationTypeToIcon(type), pos.value)
+                BackHandler {
+                    showCompass = false
+                }
+            }
         }
     }
+}
+
+fun constellationTypeToString(type: Int) = when (type) {
+    GnssStatus.CONSTELLATION_GPS -> "GPS"
+    GnssStatus.CONSTELLATION_SBAS -> "SBAS"
+    GnssStatus.CONSTELLATION_GLONASS -> "GLONASS"
+    GnssStatus.CONSTELLATION_QZSS -> "QZSS"
+    GnssStatus.CONSTELLATION_BEIDOU -> "BEIDOU"
+    GnssStatus.CONSTELLATION_GALILEO -> "GALILEO"
+    GnssStatus.CONSTELLATION_IRNSS -> "IRNSS"
+    else -> "UNKNOWN"
+}
+
+fun constellationStringToType(type: String) = when (type) {
+    "GPS" -> GnssStatus.CONSTELLATION_GPS
+    "SBAS" -> GnssStatus.CONSTELLATION_SBAS
+    "GLONASS" -> GnssStatus.CONSTELLATION_GLONASS
+    "QZSS" -> GnssStatus.CONSTELLATION_QZSS
+    "BEIDOU" -> GnssStatus.CONSTELLATION_BEIDOU
+    "GALILEO" -> GnssStatus.CONSTELLATION_GALILEO
+    "IRNSS" -> GnssStatus.CONSTELLATION_IRNSS
+    else -> GnssStatus.CONSTELLATION_UNKNOWN
+}
+
+fun constellationTypeToIcon(type: Int) = when (type) {
+    GnssStatus.CONSTELLATION_GPS -> "\uD83C\uDDFA\uD83C\uDDF8"
+    GnssStatus.CONSTELLATION_SBAS -> "SBAS"
+    GnssStatus.CONSTELLATION_GLONASS -> "\uD83C\uDDF7\uD83C\uDDFA"
+    GnssStatus.CONSTELLATION_QZSS -> "\uD83C\uDDEF\uD83C\uDDF5"
+    GnssStatus.CONSTELLATION_BEIDOU -> "\uD83C\uDDE8\uD83C\uDDF3"
+    GnssStatus.CONSTELLATION_GALILEO -> "\uD83C\uDDEA\uD83C\uDDFA"
+    GnssStatus.CONSTELLATION_IRNSS -> "\uD83C\uDDEE\uD83C\uDDF3"
+    else -> "❔"
 }

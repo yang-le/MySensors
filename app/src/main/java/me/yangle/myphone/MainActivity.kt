@@ -76,8 +76,8 @@ fun HomeScreen() {
                 title = "Sensors"
                 Sensors()
             }
-            composable("GPS") {
-                title = "GPS"
+            composable("GNSS") {
+                title = "GNSS"
                 Gps()
             }
             composable("Camera") {
