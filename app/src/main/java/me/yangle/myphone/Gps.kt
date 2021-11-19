@@ -16,7 +16,6 @@ import androidx.compose.material.Icon
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.GpsOff
 import androidx.compose.runtime.*
-import androidx.compose.runtime.snapshots.SnapshotStateMap
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.ViewModel
@@ -38,21 +37,16 @@ import me.yangle.myphone.ui.SimpleAlertDialog
 import me.yangle.myphone.ui.Table
 
 class GpsViewModel(private val locationManager: LocationManager) : ViewModel() {
-    class GnssData(
+    data class GnssData(
         val svid: Int,
         val type: Int,
         val azimuth: Float,
         val elevation: Float,
         val carrierFrequency: Float?,
         val Cn0DbHz: Float
-    ) : Comparable<GnssData> {
-        override fun compareTo(other: GnssData): Int {
-            return compareValuesBy(this, other, GnssData::type, GnssData::svid)
-        }
-    }
+    )
 
-    private val _gnssData = mutableStateMapOf<Int, SnapshotStateMap<Int, GnssData>>()
-    val gnssData = _gnssData
+    val gnssData = mutableStateMapOf<Pair<Int, Int>, GnssData>()
 
     @OptIn(ExperimentalCoroutinesApi::class)
     @SuppressLint("MissingPermission")
@@ -80,12 +74,7 @@ class GpsViewModel(private val locationManager: LocationManager) : ViewModel() {
         viewModelScope.launch {
             getGnssStatus(locationManager).collect { status ->
                 (0 until status.satelliteCount).forEach {
-                    val type = status.getConstellationType(it)
-                    if (!_gnssData.containsKey(type)) {
-                        _gnssData[type] = mutableStateMapOf()
-                    }
-                    _gnssData[type]?.set(
-                        status.getSvid(it),
+                    gnssData[status.getConstellationType(it) to status.getSvid(it)] =
                         GnssData(
                             status.getSvid(it),
                             status.getConstellationType(it),
@@ -94,7 +83,6 @@ class GpsViewModel(private val locationManager: LocationManager) : ViewModel() {
                             if (status.hasCarrierFrequencyHz(it)) status.getCarrierFrequencyHz(it) else null,
                             status.getCn0DbHz(it)
                         )
-                    )
                 }
             }
         }
@@ -181,23 +169,27 @@ fun Gps(
                     }
                 }
             )
+            val gnssDataMap = viewModel.gnssData.values.groupBy { it.type }
+
             if (!showCompass) {
-                Table(viewModel.gnssData.entries.associate { (type, value) ->
+                Table(gnssDataMap.mapKeys {
                     listOf(
-                        constellationTypeToString(type),
+                        constellationTypeToString(it.key),
                         "svid",
                         "azimuth",
                         "elevation",
                         "carrier frequency",
                         "Cn0DbHz"
-                    ) to value.values.map {
+                    )
+                }.mapValues {
+                    it.value.map { data ->
                         listOf(
-                            "",
-                            it.svid.toString(),
-                            it.azimuth.toString(),
-                            it.elevation.toString(),
-                            (it.carrierFrequency ?: "N/A").toString(),
-                            it.Cn0DbHz.toString(),
+                            constellationTypeToString(data.type),
+                            data.svid.toString(),
+                            data.azimuth.toString(),
+                            data.elevation.toString(),
+                            (data.carrierFrequency ?: "N/A").toString(),
+                            data.Cn0DbHz.toString(),
                         )
                     }
                 }) { row ->
@@ -206,9 +198,9 @@ fun Gps(
                     if (row[1] != "svid") {
                         pos.value = listOf(row[3].toFloat() to row[2].toFloat())
                     } else {
-                        val data = viewModel.gnssData[type]
+                        val data = gnssDataMap[type]
                         if (data != null) {
-                            pos.value = data.values.toList().map {
+                            pos.value = data.map {
                                 it.elevation to it.azimuth
                             }
                         }

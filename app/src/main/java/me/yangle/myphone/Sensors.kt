@@ -109,16 +109,6 @@ fun Sensors(sensorManager: SensorManager = LocalContext.current.getSystemService
 
     if (!showCompass) {
         val allSensors = remember { sensorManager.getSensorList(Sensor.TYPE_ALL) }
-        val sensorMap = remember {
-            val sensorMap = mutableMapOf<String, MutableMap<String, Sensor>>()
-            allSensors.forEach {
-                if (!sensorMap.containsKey(it.stringType)) {
-                    sensorMap[it.stringType] = mutableMapOf()
-                }
-                sensorMap[it.stringType]?.set(it.name, it)
-            }
-            sensorMap
-        }
 
         Table(allSensors.map {
             listOf(it.stringType, it.name, it.vendor)
@@ -126,19 +116,21 @@ fun Sensors(sensorManager: SensorManager = LocalContext.current.getSystemService
             when (type) {
                 Sensor.STRING_TYPE_ROTATION_VECTOR -> {
                     showCompass = true
-                    sensors = listOf(sensorMap[type]?.get(name)) as List<Sensor>
+                    sensors = listOf(allSensors.find {
+                        it.stringType == type && it.name == name
+                    }) as List<Sensor>
                 }
                 Sensor.STRING_TYPE_MAGNETIC_FIELD -> {
                     showCompass = true
                     sensors = listOf(
-                        sensorMap[type]?.get(name),
+                        allSensors.find { it.stringType == type && it.name == name },
                         sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER)
                     ) as List<Sensor>
                 }
                 Sensor.STRING_TYPE_ACCELEROMETER -> {
                     showCompass = true
                     sensors = listOf(
-                        sensorMap[type]?.get(name),
+                        allSensors.find { it.stringType == type && it.name == name },
                         sensorManager.getDefaultSensor(Sensor.TYPE_MAGNETIC_FIELD)
                     ) as List<Sensor>
                 }
