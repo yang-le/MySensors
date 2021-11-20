@@ -118,21 +118,21 @@ fun Sensors(sensorManager: SensorManager = LocalContext.current.getSystemService
                     showCompass = true
                     sensors = listOf(allSensors.find {
                         it.stringType == type && it.name == name
-                    }) as List<Sensor>
+                    }!!)
                 }
                 Sensor.STRING_TYPE_MAGNETIC_FIELD -> {
                     showCompass = true
                     sensors = listOf(
-                        allSensors.find { it.stringType == type && it.name == name },
+                        allSensors.find { it.stringType == type && it.name == name }!!,
                         sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER)
-                    ) as List<Sensor>
+                    )
                 }
                 Sensor.STRING_TYPE_ACCELEROMETER -> {
                     showCompass = true
                     sensors = listOf(
-                        allSensors.find { it.stringType == type && it.name == name },
+                        allSensors.find { it.stringType == type && it.name == name }!!,
                         sensorManager.getDefaultSensor(Sensor.TYPE_MAGNETIC_FIELD)
-                    ) as List<Sensor>
+                    )
                 }
             }
         }

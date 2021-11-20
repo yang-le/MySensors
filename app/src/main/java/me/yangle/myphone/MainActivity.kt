@@ -7,6 +7,7 @@ import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Menu
 import androidx.compose.runtime.*
+import androidx.compose.ui.res.painterResource
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
@@ -31,6 +32,7 @@ fun HomeScreen() {
     val scope = rememberCoroutineScope()
     val navController = rememberNavController()
     var title by remember { mutableStateOf("My Phone") }
+    var enableFilter by remember { mutableStateOf(false) }
 
     Scaffold(
         scaffoldState = scaffoldState,
@@ -55,6 +57,18 @@ fun HomeScreen() {
                     ) {
                         Icon(Icons.Filled.Menu, null)
                     }
+                },
+                actions = {
+                    if (title == "GNSS") {
+                        IconButton(
+                            onClick = {
+                                enableFilter = false
+                            },
+                            enabled = enableFilter
+                        ) {
+                            Icon(painterResource(R.drawable.filter_list_off), null)
+                        }
+                    }
                 }
             )
         },
@@ -78,7 +92,9 @@ fun HomeScreen() {
             }
             composable("GNSS") {
                 title = "GNSS"
-                Gps()
+                Gps(enableFilter = enableFilter) {
+                    enableFilter = true
+                }
             }
             composable("Camera") {
                 title = "Camera"

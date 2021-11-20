@@ -8,9 +8,9 @@ import android.location.LocationListener
 import android.location.LocationManager
 import android.net.Uri
 import android.provider.Settings
-import androidx.activity.compose.BackHandler
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material.Icon
 import androidx.compose.material.icons.Icons
@@ -93,7 +93,9 @@ class GpsViewModel(private val locationManager: LocationManager) : ViewModel() {
 @Composable
 fun Gps(
     locationManager: LocationManager = LocalContext.current.getSystemService(Context.LOCATION_SERVICE) as LocationManager,
-    gpsPermissionState: PermissionState = rememberPermissionState(permission = android.Manifest.permission.ACCESS_FINE_LOCATION)
+    gpsPermissionState: PermissionState = rememberPermissionState(permission = android.Manifest.permission.ACCESS_FINE_LOCATION),
+    enableFilter: Boolean = false,
+    onFilterOn: (() -> Unit)? = null
 ) {
     var providerEnabled by remember {
         mutableStateOf(
@@ -158,21 +160,28 @@ fun Gps(
                 startActivityLauncher.launch(Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS))
             }
         } else {
-            var showCompass by remember { mutableStateOf(false) }
-            val pos = remember { mutableStateOf(listOf(0f to 0f)) }
-            var type by remember { mutableStateOf(0) }
-
-            val viewModel: GpsViewModel = viewModel(
-                factory = object : ViewModelProvider.Factory {
-                    override fun <T : ViewModel?> create(modelClass: Class<T>): T {
-                        return GpsViewModel(locationManager) as T
+            Column {
+                val viewModel: GpsViewModel = viewModel(
+                    factory = object : ViewModelProvider.Factory {
+                        override fun <T : ViewModel?> create(modelClass: Class<T>): T {
+                            return GpsViewModel(locationManager) as T
+                        }
                     }
-                }
-            )
-            val gnssDataMap = viewModel.gnssData.values.groupBy { it.type }
+                )
 
-            if (!showCompass) {
-                Table(gnssDataMap.mapKeys {
+                val gnssDataMap = viewModel.gnssData.values.groupBy { it.type }
+                var gnssGroup by remember { mutableStateOf(gnssDataMap) }
+                var gnssData: Collection<GpsViewModel.GnssData> by remember {
+                    mutableStateOf(viewModel.gnssData.values)
+                }
+
+                if (!enableFilter) {
+                    gnssData = viewModel.gnssData.values
+                    gnssGroup = gnssDataMap
+                }
+
+                Compass(gnssData)
+                Table(gnssGroup.mapKeys {
                     listOf(
                         constellationTypeToString(it.key),
                         "svid",
@@ -193,30 +202,22 @@ fun Gps(
                         )
                     }
                 }) { row ->
-                    showCompass = true
-                    type = constellationStringToType(row[0])
-                    if (row[1] != "svid") {
-                        pos.value = listOf(row[3].toFloat() to row[2].toFloat())
+                    gnssData = if (row[1] != "svid") {
+                        listOf(gnssDataMap[constellationStringToType(row[0])]?.find {
+                            it.svid.toString() == row[1]
+                        }!!)
                     } else {
-                        val data = gnssDataMap[type]
-                        if (data != null) {
-                            pos.value = data.map {
-                                it.elevation to it.azimuth
-                            }
-                        }
+                        gnssDataMap[constellationStringToType(row[0])]!!
                     }
-                }
-            } else {
-                Compass(constellationTypeToIcon(type), pos.value)
-                BackHandler {
-                    showCompass = false
+                    gnssGroup = mapOf(constellationStringToType(row[0]) to gnssData.toList())
+                    onFilterOn?.invoke()
                 }
             }
         }
     }
 }
 
-fun constellationTypeToString(type: Int) = when (type) {
+private fun constellationTypeToString(type: Int) = when (type) {
     GnssStatus.CONSTELLATION_GPS -> "GPS"
     GnssStatus.CONSTELLATION_SBAS -> "SBAS"
     GnssStatus.CONSTELLATION_GLONASS -> "GLONASS"
@@ -227,7 +228,7 @@ fun constellationTypeToString(type: Int) = when (type) {
     else -> "UNKNOWN"
 }
 
-fun constellationStringToType(type: String) = when (type) {
+private fun constellationStringToType(type: String) = when (type) {
     "GPS" -> GnssStatus.CONSTELLATION_GPS
     "SBAS" -> GnssStatus.CONSTELLATION_SBAS
     "GLONASS" -> GnssStatus.CONSTELLATION_GLONASS
@@ -236,15 +237,4 @@ fun constellationStringToType(type: String) = when (type) {
     "GALILEO" -> GnssStatus.CONSTELLATION_GALILEO
     "IRNSS" -> GnssStatus.CONSTELLATION_IRNSS
     else -> GnssStatus.CONSTELLATION_UNKNOWN
-}
-
-fun constellationTypeToIcon(type: Int) = when (type) {
-    GnssStatus.CONSTELLATION_GPS -> "\uD83C\uDDFA\uD83C\uDDF8"
-    GnssStatus.CONSTELLATION_SBAS -> "SBAS"
-    GnssStatus.CONSTELLATION_GLONASS -> "\uD83C\uDDF7\uD83C\uDDFA"
-    GnssStatus.CONSTELLATION_QZSS -> "\uD83C\uDDEF\uD83C\uDDF5"
-    GnssStatus.CONSTELLATION_BEIDOU -> "\uD83C\uDDE8\uD83C\uDDF3"
-    GnssStatus.CONSTELLATION_GALILEO -> "\uD83C\uDDEA\uD83C\uDDFA"
-    GnssStatus.CONSTELLATION_IRNSS -> "\uD83C\uDDEE\uD83C\uDDF3"
-    else -> "❔"
 }

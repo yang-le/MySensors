@@ -4,6 +4,7 @@ import android.content.Context
 import android.content.res.Configuration
 import android.hardware.Sensor
 import android.hardware.SensorManager
+import android.location.GnssStatus
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -17,17 +18,16 @@ import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.graphics.drawscope.DrawScope
-import androidx.compose.ui.graphics.drawscope.DrawStyle
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.core.graphics.drawable.toBitmap
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewmodel.compose.viewModel
+import me.yangle.myphone.GpsViewModel
 import me.yangle.myphone.R
 import me.yangle.myphone.SensorViewModel
 import kotlin.math.cos
@@ -63,7 +63,7 @@ fun Compass(orientation: FloatArray = FloatArray(3), onDraw: (DrawScope.() -> Un
 }
 
 @Composable
-fun Compass(emoji: String, pos: List<Pair<Float, Float>>) {
+fun Compass(data: Collection<GpsViewModel.GnssData>) {
     val iconSize = 50
     val sensorManager: SensorManager =
         LocalContext.current.getSystemService(Context.SENSOR_SERVICE) as SensorManager
@@ -82,20 +82,31 @@ fun Compass(emoji: String, pos: List<Pair<Float, Float>>) {
     )
     val borderColor = MaterialTheme.colors.secondaryVariant
     Compass(viewModel.orientation) {
-        pos.forEach { (elevation , azimuth) ->
+        data.forEach {
             val center = Offset(size.width / 2, size.height / 2)
-            val e = Math.toRadians(elevation.toDouble())
-            val a = Math.toRadians(azimuth.toDouble())
+            val e = Math.toRadians(it.elevation.toDouble())
+            val a = Math.toRadians(it.azimuth.toDouble())
             val r = (size.width + size.height) / 7  // actually / 4 * 4 / 7
             val l = r * cos(e)
             val x = l * cos(a)
             val y = l * sin(a)
             drawCircle(borderColor, r, center, style = Stroke())
             drawImage(
-                EmojiDrawable(emoji).toBitmap(iconSize, iconSize)
+                EmojiDrawable(constellationTypeToIcon(it.type)).toBitmap(iconSize, iconSize)
                     .asImageBitmap(),
                 center - Offset(iconSize / 2 - y.toFloat(), iconSize / 2 + x.toFloat())
             )
         }
     }
+}
+
+private fun constellationTypeToIcon(type: Int) = when (type) {
+    GnssStatus.CONSTELLATION_GPS -> "\uD83C\uDDFA\uD83C\uDDF8"
+    GnssStatus.CONSTELLATION_SBAS -> "SBAS"
+    GnssStatus.CONSTELLATION_GLONASS -> "\uD83C\uDDF7\uD83C\uDDFA"
+    GnssStatus.CONSTELLATION_QZSS -> "\uD83C\uDDEF\uD83C\uDDF5"
+    GnssStatus.CONSTELLATION_BEIDOU -> "\uD83C\uDDE8\uD83C\uDDF3"
+    GnssStatus.CONSTELLATION_GALILEO -> "\uD83C\uDDEA\uD83C\uDDFA"
+    GnssStatus.CONSTELLATION_IRNSS -> "\uD83C\uDDEE\uD83C\uDDF3"
+    else -> "❔"
 }
