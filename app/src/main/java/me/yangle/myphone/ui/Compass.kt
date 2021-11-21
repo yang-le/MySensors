@@ -71,6 +71,7 @@ fun Compass(data: Collection<GpsViewModel.GnssData>) {
         key = "compass",
         factory = object : ViewModelProvider.Factory {
             override fun <T : ViewModel?> create(modelClass: Class<T>): T {
+                @Suppress("UNCHECKED_CAST")
                 return SensorViewModel(
                     sensorManager, listOf(
                         sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER),

@@ -164,6 +164,7 @@ fun Gps(
                 val viewModel: GpsViewModel = viewModel(
                     factory = object : ViewModelProvider.Factory {
                         override fun <T : ViewModel?> create(modelClass: Class<T>): T {
+                            @Suppress("UNCHECKED_CAST")
                             return GpsViewModel(locationManager) as T
                         }
                     }

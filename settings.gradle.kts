@@ -6,4 +6,4 @@ dependencyResolutionManagement {
     }
 }
 rootProject.name = "My Phone"
-include ':app'
+include(":app")

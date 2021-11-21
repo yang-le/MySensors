@@ -141,6 +141,7 @@ fun Sensors(sensorManager: SensorManager = LocalContext.current.getSystemService
             key = sensors[0].stringType,
             factory = object : ViewModelProvider.Factory {
                 override fun <T : ViewModel?> create(modelClass: Class<T>): T {
+                    @Suppress("UNCHECKED_CAST")
                     return SensorViewModel(sensorManager, sensors) as T
                 }
             }

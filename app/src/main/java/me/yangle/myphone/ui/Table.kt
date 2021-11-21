@@ -37,7 +37,6 @@ fun Table(
         Table(data, null, onClick)
 }
 
-@OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun Table(
     data: List<List<String>>,
