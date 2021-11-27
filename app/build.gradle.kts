@@ -81,6 +81,7 @@ dependencies {
 //    implementation("com.google.android.gms:play-services-oss-licenses:17.0.0")
     implementation ("com.mikepenz:aboutlibraries-core:10.0.0-b01")
     implementation ("org.osmdroid:osmdroid-android:6.1.10")
+    implementation("androidx.preference:preference-ktx:1.1.1")
 //    implementation 'androidx.hilt:hilt-lifecycle-viewmodel:1.0.0-alpha03'
 //    implementation 'androidx.hilt:hilt-navigation-compose:1.0.0-alpha03'
 //    implementation "com.google.dagger:hilt-android:$dagger_version"
