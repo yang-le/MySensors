@@ -100,6 +100,10 @@ fun HomeScreen() {
                 title = "Camera"
                 Camera()
             }
+            composable("About") {
+                title = "About"
+                About()
+            }
         }
     }
 }

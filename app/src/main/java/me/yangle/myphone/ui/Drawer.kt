@@ -28,16 +28,17 @@ fun Drawer(
 ) {
     Surface {
         Column(Modifier.verticalScroll(rememberScrollState())) {
-            DrawerItem(Icons.Rounded.PhoneAndroid, "My Phone", onClick)
+            DrawerItem(Icons.Rounded.PhoneAndroid, "My Phone", onClick = onClick)
             Divider()
             if (hasCamera)
-                DrawerItem(Icons.Rounded.Camera, "Camera", onClick)
+                DrawerItem(Icons.Rounded.Camera, "Camera", onClick = onClick)
             if (hasGps)
-                DrawerItem(Icons.Rounded.Satellite, "GNSS", onClick)
-            DrawerItem(Icons.Rounded.Sensors, "Sensors", onClick)
-            DrawerItem(Icons.Rounded.Memory, "CPU", onClick)
-            DrawerItem(Icons.TwoTone.Memory, "GPU", onClick)
-            DrawerItem(Icons.Rounded.Storage, "Storage", onClick)
+                DrawerItem(Icons.Rounded.Satellite, "GNSS", onClick = onClick)
+            DrawerItem(Icons.Rounded.Sensors, "Sensors", onClick = onClick)
+            DrawerItem(Icons.Rounded.Memory, "CPU", onClick = onClick)
+            DrawerItem(Icons.TwoTone.Memory, "GPU", onClick = onClick)
+            DrawerItem(Icons.Rounded.Storage, "Storage", onClick = onClick)
+            DrawerItem(Icons.Rounded.Info, "About", onClick = onClick)
         }
     }
 }
@@ -47,8 +48,8 @@ fun Drawer(
 private fun DrawerItem(
     icon: ImageVector? = null,
     text: String? = null,
-    onClick: ((key: String) -> Unit)? = null,
-    key: String = text ?: ""
+    key: String = text ?: "",
+    onClick: ((key: String) -> Unit)? = null
 ) = ListItem(
     modifier = onClick?.let {
         Modifier.clickable { it(key) }
