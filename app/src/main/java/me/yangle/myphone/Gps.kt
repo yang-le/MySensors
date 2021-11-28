@@ -7,6 +7,8 @@ import android.net.Uri
 import android.provider.Settings
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -14,12 +16,11 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material.Icon
 import androidx.compose.material.Text
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.rounded.GpsOff
-import androidx.compose.material.icons.rounded.Home
-import androidx.compose.material.icons.rounded.Place
+import androidx.compose.material.icons.rounded.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.core.content.ContextCompat
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -163,6 +164,7 @@ fun Gps(
     }
 }
 
+@OptIn(ExperimentalAnimationApi::class)
 @Composable
 private fun AddressCard(
     location: Location,
@@ -171,10 +173,10 @@ private fun AddressCard(
     val context = LocalContext.current
     Column {
         Row(Modifier.clickable {
-            MapActivity.launch(
+            ContextCompat.startActivity(
                 context,
-                location.latitude,
-                location.longitude
+                Intent(Intent.ACTION_VIEW, Uri.parse("geo:${location.latitude},${location.longitude}")),
+                null
             )
         }) {
             Icon(Icons.Rounded.Place, "coordinate")
@@ -183,15 +185,72 @@ private fun AddressCard(
         addressList.forEach {
             Row(Modifier.clickable {
                 if (it.hasLatitude() && it.hasLongitude()) {
-                    MapActivity.launch(
+                    ContextCompat.startActivity(
                         context,
-                        it.latitude,
-                        it.longitude
+                        Intent(Intent.ACTION_VIEW, Uri.parse("geo:${it.latitude},${it.longitude}")),
+                        null
                     )
                 }
             }) {
                 Icon(Icons.Rounded.Home, "location")
                 Text(addressToString(it))
+            }
+            it.postalCode?.let { postalCode ->
+                if (postalCode.isNotBlank()) {
+                    Row{
+                        Icon(Icons.Rounded.MarkunreadMailbox, "postal code")
+                        Text(postalCode)
+                    }
+                }
+            }
+            it.phone?.let { phone ->
+                if (phone.isNotBlank()) {
+                    Row(Modifier.clickable {
+                        ContextCompat.startActivity(
+                            context,
+                            Intent(Intent.ACTION_DIAL, Uri.parse("tel:$phone")),
+                            null
+                        )
+                    }){
+                        Icon(Icons.Rounded.Phone, "phone")
+                        Text(phone)
+                    }
+                }
+            }
+            it.url?.let { url ->
+                if (url.isNotBlank()) {
+                    Row(Modifier.clickable {
+                        ContextCompat.startActivity(
+                            context,
+                            Intent(Intent.ACTION_VIEW, Uri.parse(url)),
+                            null
+                        )
+                    }){
+                        Icon(Icons.Rounded.Link, "url")
+                        Text(url)
+                    }
+                }
+            }
+            if (it.maxAddressLineIndex > 0) {
+                var showNearMe by remember { mutableStateOf(false)}
+
+                Row(Modifier.clickable {
+                    showNearMe = !showNearMe
+                }) {
+                    Icon(Icons.Rounded.NearMe, "near me")
+                    Text(it.getAddressLine(0))
+                }
+
+                AnimatedVisibility (showNearMe) {
+                    Column {
+                        (1..it.maxAddressLineIndex).forEach { i ->
+                            Row {
+                                Icon(Icons.Rounded.NearMe, "near me")
+                                Text(it.getAddressLine(i))
+                            }
+                        }
+                    }
+                }
             }
         }
     }
