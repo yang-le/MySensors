@@ -1,114 +1,36 @@
 package me.yangle.myphone
 
-import android.annotation.SuppressLint
 import android.content.Context
 import android.content.Intent
-import android.location.GnssStatus
-import android.location.Location
-import android.location.LocationListener
-import android.location.LocationManager
+import android.location.*
 import android.net.Uri
 import android.provider.Settings
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material.Icon
 import androidx.compose.material.Text
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.GpsOff
+import androidx.compose.material.icons.rounded.Home
+import androidx.compose.material.icons.rounded.Place
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
-import androidx.core.content.ContextCompat.startActivity
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
-import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.PermissionRequired
 import com.google.accompanist.permissions.PermissionState
 import com.google.accompanist.permissions.rememberPermissionState
-import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.channels.awaitClose
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.callbackFlow
-import kotlinx.coroutines.flow.collect
-import kotlinx.coroutines.flow.combine
-import kotlinx.coroutines.launch
 import me.yangle.myphone.ui.Compass
 import me.yangle.myphone.ui.SimpleAlertDialog
 import me.yangle.myphone.ui.Table
 
-class GpsViewModel(private val locationManager: LocationManager) : ViewModel() {
-    data class GnssData(
-        val svid: Int,
-        val type: Int,
-        val azimuth: Float,
-        val elevation: Float,
-        val carrierFrequency: Float?,
-        val Cn0DbHz: Float
-    )
-
-    val gnssData = mutableStateMapOf<Pair<Int, Int>, GnssData>()
-    var location by mutableStateOf(Location(LocationManager.GPS_PROVIDER))
-
-    @OptIn(ExperimentalCoroutinesApi::class)
-    @SuppressLint("MissingPermission")
-    private fun getGnssStatus(locationManager: LocationManager): Flow<GnssStatus> = callbackFlow {
-        val callback = object : GnssStatus.Callback() {
-            override fun onSatelliteStatusChanged(status: GnssStatus) {
-                trySend(status)
-            }
-        }
-
-        locationManager.registerGnssStatusCallback(callback, null)
-
-        awaitClose {
-            locationManager.unregisterGnssStatusCallback(callback)
-        }
-    }
-
-    @OptIn(ExperimentalCoroutinesApi::class)
-    @SuppressLint("MissingPermission")
-    private fun getLocation(locationManager: LocationManager): Flow<Location> = callbackFlow {
-        val listener = LocationListener {
-            trySend(it)
-        }
-
-        locationManager.requestLocationUpdates(
-            LocationManager.GPS_PROVIDER, 1000, 0f, listener
-        )
-
-        trySend(locationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER) ?: location)
-
-        awaitClose {
-            locationManager.removeUpdates(listener)
-        }
-    }
-
-    init {
-        viewModelScope.launch {
-            getGnssStatus(locationManager).combine(getLocation(locationManager)){ first, second ->
-                first to second
-            }.collect { (status, location) ->
-                (0 until status.satelliteCount).forEach {
-                    gnssData[status.getConstellationType(it) to status.getSvid(it)] =
-                        GnssData(
-                            status.getSvid(it),
-                            status.getConstellationType(it),
-                            status.getAzimuthDegrees(it),
-                            status.getElevationDegrees(it),
-                            if (status.hasCarrierFrequencyHz(it)) status.getCarrierFrequencyHz(it) else null,
-                            status.getCn0DbHz(it)
-                        )
-                }
-                this@GpsViewModel.location = location
-            }
-        }
-    }
-}
 
 @OptIn(ExperimentalPermissionsApi::class)
 @Composable
@@ -181,31 +103,29 @@ fun Gps(
                 startActivityLauncher.launch(Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS))
             }
         } else {
-            Column {
-                val viewModel: GpsViewModel = viewModel(
-                    factory = object : ViewModelProvider.Factory {
-                        override fun <T : ViewModel?> create(modelClass: Class<T>): T {
-                            @Suppress("UNCHECKED_CAST")
-                            return GpsViewModel(locationManager) as T
-                        }
+            val context = LocalContext.current
+            val viewModel: GpsViewModel = viewModel(
+                factory = object : ViewModelProvider.Factory {
+                    override fun <T : ViewModel?> create(modelClass: Class<T>): T {
+                        @Suppress("UNCHECKED_CAST")
+                        return GpsViewModel(locationManager, Geocoder(context)) as T
                     }
-                )
-
-                val gnssDataMap = viewModel.gnssData.values.groupBy { it.type }
-                var gnssGroup by remember { mutableStateOf(gnssDataMap) }
-                var gnssData: Collection<GpsViewModel.GnssData> by remember {
-                    mutableStateOf(viewModel.gnssData.values)
                 }
+            )
 
-                if (!enableFilter) {
-                    gnssData = viewModel.gnssData.values
-                    gnssGroup = gnssDataMap
-                }
+            val gnssDataMap = viewModel.gnssData.values.groupBy { it.type }
+            var gnssGroup by remember { mutableStateOf(gnssDataMap) }
+            var gnssData: Collection<GpsViewModel.GnssData> by remember {
+                mutableStateOf(viewModel.gnssData.values)
+            }
 
-                val context = LocalContext.current
-                Text("lat: ${viewModel.location.latitude} lon: ${viewModel.location.longitude}", Modifier.clickable {
-                    startActivity(context, Intent(context, MapActivity::class.java), null)
-                })
+            if (!enableFilter) {
+                gnssData = viewModel.gnssData.values
+                gnssGroup = gnssDataMap
+            }
+
+            Column {
+                AddressCard(viewModel.location, viewModel.addressList)
                 Compass(gnssData)
                 Table(gnssGroup.mapKeys {
                     listOf(
@@ -241,6 +161,54 @@ fun Gps(
             }
         }
     }
+}
+
+@Composable
+private fun AddressCard(
+    location: Location,
+    addressList: List<Address>
+) {
+    val context = LocalContext.current
+    Column {
+        Row(Modifier.clickable {
+            MapActivity.launch(
+                context,
+                location.latitude,
+                location.longitude
+            )
+        }) {
+            Icon(Icons.Rounded.Place, "coordinate")
+            Text("${location.latitude}, ${location.longitude}")
+        }
+        addressList.forEach {
+            Row(Modifier.clickable {
+                if (it.hasLatitude() && it.hasLongitude()) {
+                    MapActivity.launch(
+                        context,
+                        it.latitude,
+                        it.longitude
+                    )
+                }
+            }) {
+                Icon(Icons.Rounded.Home, "location")
+                Text(addressToString(it))
+            }
+        }
+    }
+}
+
+private fun addressToString(address: Address): String {
+    var addr = ""
+    address.countryName?.let { if (it.isNotBlank()) addr += it }
+    address.adminArea?.let { if (it.isNotBlank()) addr += ", $it" }
+    address.subAdminArea?.let { if (it.isNotBlank()) addr += ", $it" }
+    address.locality?.let { if (it.isNotBlank()) addr += ", $it" }
+    address.subLocality?.let { if (it.isNotBlank()) addr += ", $it" }
+    address.thoroughfare?.let { if (it.isNotBlank()) addr += ", $it" }
+    address.subThoroughfare?.let { if (it.isNotBlank()) addr += ", $it" }
+    address.featureName?.let { if (it.isNotBlank()) addr += ", $it" }
+    address.premises?.let { if (it.isNotBlank()) addr += ", $it" }
+    return addr
 }
 
 private fun constellationTypeToString(type: Int) = when (type) {

@@ -1,5 +1,7 @@
 package me.yangle.myphone
 
+import android.content.Context
+import android.content.Intent
 import android.content.SharedPreferences
 import android.os.Bundle
 import android.util.DisplayMetrics
@@ -9,13 +11,11 @@ import org.osmdroid.config.Configuration.getInstance
 import org.osmdroid.tileprovider.tilesource.TileSourceFactory
 import org.osmdroid.util.GeoPoint
 import org.osmdroid.views.MapView
+import org.osmdroid.views.overlay.Marker
 import org.osmdroid.views.overlay.MinimapOverlay
 import org.osmdroid.views.overlay.ScaleBarOverlay
-import org.osmdroid.views.overlay.mylocation.GpsMyLocationProvider
-import org.osmdroid.views.overlay.mylocation.MyLocationNewOverlay
-import org.osmdroid.views.overlay.compass.InternalCompassOrientationProvider
-
 import org.osmdroid.views.overlay.compass.CompassOverlay
+import org.osmdroid.views.overlay.compass.InternalCompassOrientationProvider
 import org.osmdroid.views.overlay.gestures.RotationGestureOverlay
 
 
@@ -34,14 +34,20 @@ class MapActivity : AppCompatActivity() {
         map = findViewById(R.id.map)
         map.setTileSource(TileSourceFactory.MAPNIK)
 
+        val options = intent.extras
         val mapController = map.controller
-        mapController.setZoom(20.0)
-        val startPoint = GeoPoint(38.8547, 121.5017)
+        mapController.setZoom(18.0)
+        val startPoint =
+            GeoPoint(options?.getDouble("lat") ?: 0.0, options?.getDouble("lon") ?: 0.0)
         mapController.setCenter(startPoint)
 
-        val locationOverlay = MyLocationNewOverlay(GpsMyLocationProvider(this), map)
-        locationOverlay.enableMyLocation()
-        map.overlays.add(locationOverlay)
+//        val locationOverlay = MyLocationNewOverlay(GpsMyLocationProvider(this), map)
+//        locationOverlay.enableMyLocation()
+//        map.overlays.add(locationOverlay)
+
+        val marker = Marker(map)
+        marker.position = startPoint
+        map.overlays.add(marker)
 
         val compassOverlay = CompassOverlay(this, InternalCompassOrientationProvider(this), map)
         compassOverlay.enableCompass()
@@ -51,7 +57,7 @@ class MapActivity : AppCompatActivity() {
         map.setMultiTouchControls(true)
         map.overlays.add(rotationGestureOverlay)
 
-        val dm : DisplayMetrics = resources.displayMetrics
+        val dm: DisplayMetrics = resources.displayMetrics
         val scaleBarOverlay = ScaleBarOverlay(map)
         scaleBarOverlay.setCentred(true)
         scaleBarOverlay.setScaleBarOffset(dm.widthPixels / 2, 10)
@@ -75,5 +81,12 @@ class MapActivity : AppCompatActivity() {
         super.onPause()
 //        getInstance().save(this, prefs);
         map.onPause()
+    }
+
+    companion object {
+        fun launch(context: Context, lat: Double, lon: Double) =
+            context.startActivity(
+                Intent(context, MapActivity::class.java).putExtra("lat", lat).putExtra("lon", lon)
+            )
     }
 }
