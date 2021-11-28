@@ -38,6 +38,7 @@ fun Drawer(
             DrawerItem(Icons.Rounded.Memory, "CPU", onClick = onClick)
             DrawerItem(Icons.TwoTone.Memory, "GPU", onClick = onClick)
             DrawerItem(Icons.Rounded.Storage, "Storage", onClick = onClick)
+            Divider()
             DrawerItem(Icons.Rounded.Info, "About", onClick = onClick)
         }
     }
