@@ -6,6 +6,7 @@ import androidx.activity.compose.setContent
 import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Menu
+import androidx.compose.material.icons.rounded.Explore
 import androidx.compose.runtime.*
 import androidx.compose.ui.res.painterResource
 import androidx.navigation.compose.NavHost
@@ -33,6 +34,7 @@ fun HomeScreen() {
     val navController = rememberNavController()
     var title by remember { mutableStateOf("My Phone") }
     var enableFilter by remember { mutableStateOf(false) }
+    var enableCompass by remember { mutableStateOf(true) }
 
     Scaffold(
         scaffoldState = scaffoldState,
@@ -62,6 +64,13 @@ fun HomeScreen() {
                     if (title == "GNSS") {
                         IconButton(
                             onClick = {
+                                enableCompass = !enableCompass
+                            }
+                        ) {
+                            Icon(Icons.Rounded.Explore, null)
+                        }
+                        IconButton(
+                            onClick = {
                                 enableFilter = false
                             },
                             enabled = enableFilter
@@ -76,6 +85,7 @@ fun HomeScreen() {
         NavHost(navController = navController, startDestination = "My Phone") {
             composable("My Phone") {
                 title = "My Phone"
+                MyPhone()
             }
             composable("CPU") {
                 title = "CPU"
@@ -92,7 +102,7 @@ fun HomeScreen() {
             }
             composable("GNSS") {
                 title = "GNSS"
-                Gps(enableFilter = enableFilter) {
+                Gps(enableFilter = enableFilter, enableCompass = enableCompass) {
                     enableFilter = true
                 }
             }

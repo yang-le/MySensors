@@ -36,7 +36,7 @@ class GpsViewModel(
     val gnssData = mutableStateMapOf<Pair<Int, Int>, GnssData>()
 
     var location by mutableStateOf(Location(LocationManager.GPS_PROVIDER))
-    var addressList: List<Address> by mutableStateOf(listOf(Address(Locale.CHINA)))
+    var addressList: List<Address> by mutableStateOf(listOf(Address(Locale.getDefault())))
 
     @OptIn(ExperimentalCoroutinesApi::class)
     @SuppressLint("MissingPermission")
@@ -77,7 +77,7 @@ class GpsViewModel(
     }
 
     private fun locationToAddress(location: Location) =
-        Address(Locale.CHINA).also {
+        Address(Locale.getDefault()).also {
             it.latitude = location.latitude
             it.longitude = location.longitude
         }

@@ -31,6 +31,11 @@ import com.google.accompanist.permissions.rememberPermissionState
 import me.yangle.myphone.ui.Compass
 import me.yangle.myphone.ui.SimpleAlertDialog
 import me.yangle.myphone.ui.Table
+import me.yangle.myphone.ui.OneLineText
+import java.time.Instant
+import java.time.ZoneId
+import java.time.format.DateTimeFormatter
+import java.time.format.FormatStyle
 
 
 @OptIn(ExperimentalPermissionsApi::class)
@@ -39,6 +44,7 @@ fun Gps(
     locationManager: LocationManager = LocalContext.current.getSystemService(Context.LOCATION_SERVICE) as LocationManager,
     gpsPermissionState: PermissionState = rememberPermissionState(permission = android.Manifest.permission.ACCESS_FINE_LOCATION),
     enableFilter: Boolean = false,
+    enableCompass: Boolean = true,
     onFilterOn: (() -> Unit)? = null
 ) {
     var providerEnabled by remember {
@@ -127,7 +133,9 @@ fun Gps(
 
             Column {
                 AddressCard(viewModel.location, viewModel.addressList)
-                Compass(gnssData)
+                if (enableCompass) {
+                    Compass(gnssData)
+                }
                 Table(gnssGroup.mapKeys {
                     listOf(
                         constellationTypeToString(it.key),
@@ -175,12 +183,38 @@ private fun AddressCard(
         Row(Modifier.clickable {
             ContextCompat.startActivity(
                 context,
-                Intent(Intent.ACTION_VIEW, Uri.parse("geo:${location.latitude},${location.longitude}")),
+                Intent(
+                    Intent.ACTION_VIEW,
+                    Uri.parse("geo:${location.latitude},${location.longitude}")
+                ),
                 null
             )
         }) {
             Icon(Icons.Rounded.Place, "coordinate")
             Text("${location.latitude}, ${location.longitude}")
+            if (location.hasAltitude()) {
+                Icon(Icons.Rounded.Height, "altitude")
+                OneLineText("${location.altitude}")
+            }
+        }
+        Row {
+            Icon(Icons.Rounded.Watch, "time")
+            Text(
+                DateTimeFormatter.ofLocalizedDateTime(FormatStyle.FULL)
+                    .withZone(ZoneId.systemDefault()).format(Instant.ofEpochMilli(location.time))
+            )
+        }
+        if (location.hasSpeed() || location.hasBearing()) {
+            Row {
+                if (location.hasSpeed()) {
+                    Icon(Icons.Rounded.Speed, "speed")
+                    Text("${location.speed}")
+                }
+                if (location.hasBearing()) {
+                    Icon(Icons.Rounded.Explore, "bearing")
+                    Text("${location.bearing}")
+                }
+            }
         }
         addressList.forEach {
             Row(Modifier.clickable {
@@ -197,7 +231,7 @@ private fun AddressCard(
             }
             it.postalCode?.let { postalCode ->
                 if (postalCode.isNotBlank()) {
-                    Row{
+                    Row {
                         Icon(Icons.Rounded.MarkunreadMailbox, "postal code")
                         Text(postalCode)
                     }
@@ -211,7 +245,7 @@ private fun AddressCard(
                             Intent(Intent.ACTION_DIAL, Uri.parse("tel:$phone")),
                             null
                         )
-                    }){
+                    }) {
                         Icon(Icons.Rounded.Phone, "phone")
                         Text(phone)
                     }
@@ -225,14 +259,14 @@ private fun AddressCard(
                             Intent(Intent.ACTION_VIEW, Uri.parse(url)),
                             null
                         )
-                    }){
+                    }) {
                         Icon(Icons.Rounded.Link, "url")
                         Text(url)
                     }
                 }
             }
             if (it.maxAddressLineIndex > 0) {
-                var showNearMe by remember { mutableStateOf(false)}
+                var showNearMe by remember { mutableStateOf(false) }
 
                 Row(Modifier.clickable {
                     showNearMe = !showNearMe
@@ -241,7 +275,7 @@ private fun AddressCard(
                     Text(it.getAddressLine(0))
                 }
 
-                AnimatedVisibility (showNearMe) {
+                AnimatedVisibility(showNearMe) {
                     Column {
                         (1..it.maxAddressLineIndex).forEach { i ->
                             Row {

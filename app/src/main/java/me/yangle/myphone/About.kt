@@ -13,33 +13,17 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat.startActivity
 import com.mikepenz.aboutlibraries.Libs
 import com.mikepenz.aboutlibraries.util.withContext
+import me.yangle.myphone.ui.OneLineText
 
 @Composable
 fun About() {
     val libs = Libs.Builder().withContext(LocalContext.current).build()
     val context = LocalContext.current
-
-    @Composable
-    fun OneLineText(
-        text: String,
-        modifier: Modifier = Modifier,
-        textAlign: TextAlign? = null,
-        style: TextStyle = LocalTextStyle.current
-    ) = Text(
-        text,
-        modifier,
-        textAlign = textAlign,
-        overflow = TextOverflow.Ellipsis,
-        maxLines = 1,
-        style = style
-    )
 
     LazyColumn {
         items(libs.libraries) {

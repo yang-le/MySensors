@@ -1,11 +1,8 @@
 plugins {
     id("com.android.application")
-//    id("com.google.android.gms.oss-licenses-plugin")
     id("com.google.android.gms.strict-version-matcher-plugin")
     id("com.mikepenz.aboutlibraries.plugin") version "10.0.0-b02"
     kotlin("android")
-//    id("kotlin-kapt")
-//    id("dagger.hilt.android.plugin")
 }
 
 val composeVersion = "1.0.5"
@@ -78,15 +75,7 @@ dependencies {
     implementation("androidx.navigation:navigation-compose:2.4.0-beta02")
     implementation("androidx.emoji2:emoji2:1.0.0-rc01")
     implementation("com.google.accompanist:accompanist-permissions:0.20.2")
-//    implementation("com.google.android.gms:play-services-oss-licenses:17.0.0")
-//    implementation ("org.osmdroid:osmdroid-android:6.1.10")
-//    implementation("androidx.preference:preference-ktx:1.1.1")
     implementation ("com.mikepenz:aboutlibraries-core:10.0.0-b02")
-//    implementation 'androidx.hilt:hilt-lifecycle-viewmodel:1.0.0-alpha03'
-//    implementation 'androidx.hilt:hilt-navigation-compose:1.0.0-alpha03'
-//    implementation "com.google.dagger:hilt-android:$dagger_version"
-//    kapt 'androidx.hilt:hilt-compiler:1.0.0-beta01'
-//    kapt "com.google.dagger:hilt-android-compiler:$dagger_version"
 
     debugImplementation("androidx.compose.ui:ui-tooling:$composeVersion")
 
