@@ -3,15 +3,17 @@ package me.yangle.myphone
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material.icons.rounded.Explore
 import androidx.compose.runtime.*
 import androidx.compose.ui.res.painterResource
-import androidx.navigation.compose.NavHost
-import androidx.navigation.compose.composable
-import androidx.navigation.compose.rememberNavController
+import com.google.accompanist.navigation.animation.AnimatedNavHost
+import com.google.accompanist.navigation.animation.composable
+import com.google.accompanist.navigation.animation.rememberAnimatedNavController
+import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import kotlinx.coroutines.launch
 import me.yangle.myphone.ui.Drawer
 import me.yangle.myphone.ui.theme.MyPhoneTheme
@@ -27,11 +29,12 @@ class MainActivity : ComponentActivity() {
     }
 }
 
+@OptIn(ExperimentalPermissionsApi::class, ExperimentalAnimationApi::class)
 @Composable
 fun HomeScreen() {
     val scaffoldState = rememberScaffoldState()
     val scope = rememberCoroutineScope()
-    val navController = rememberNavController()
+    val navController = rememberAnimatedNavController()
     var title by remember { mutableStateOf("My Phone") }
     var enableFilter by remember { mutableStateOf(false) }
     var enableCompass by remember { mutableStateOf(true) }
@@ -82,7 +85,7 @@ fun HomeScreen() {
             )
         },
     ) {
-        NavHost(navController = navController, startDestination = "My Phone") {
+        AnimatedNavHost(navController = navController, startDestination = "My Phone") {
             composable("My Phone") {
                 title = "My Phone"
                 MyPhone()

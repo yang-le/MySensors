@@ -5,7 +5,8 @@ plugins {
     kotlin("android")
 }
 
-val composeVersion = "1.0.5"
+val composeVersion: String by rootProject.extra
+val accompanistVersion: String by rootProject.extra
 
 android {
     compileSdk = 31
@@ -74,7 +75,8 @@ dependencies {
     implementation("androidx.activity:activity-compose:1.4.0")
     implementation("androidx.navigation:navigation-compose:2.4.0-beta02")
     implementation("androidx.emoji2:emoji2:1.0.0-rc01")
-    implementation("com.google.accompanist:accompanist-permissions:0.20.2")
+    implementation("com.google.accompanist:accompanist-permissions:$accompanistVersion")
+    implementation("com.google.accompanist:accompanist-navigation-animation:$accompanistVersion")
     implementation ("com.mikepenz:aboutlibraries-core:10.0.0-b02")
 
     debugImplementation("androidx.compose.ui:ui-tooling:$composeVersion")

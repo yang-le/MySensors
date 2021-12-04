@@ -29,14 +29,13 @@ import com.google.accompanist.permissions.PermissionRequired
 import com.google.accompanist.permissions.PermissionState
 import com.google.accompanist.permissions.rememberPermissionState
 import me.yangle.myphone.ui.Compass
+import me.yangle.myphone.ui.OneLineText
 import me.yangle.myphone.ui.SimpleAlertDialog
 import me.yangle.myphone.ui.Table
-import me.yangle.myphone.ui.OneLineText
 import java.time.Instant
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 import java.time.format.FormatStyle
-
 
 @OptIn(ExperimentalPermissionsApi::class)
 @Composable
@@ -133,7 +132,7 @@ fun Gps(
 
             Column {
                 AddressCard(viewModel.location, viewModel.addressList)
-                if (enableCompass) {
+                AnimatedVisibility(enableCompass) {
                     Compass(gnssData)
                 }
                 Table(gnssGroup.mapKeys {

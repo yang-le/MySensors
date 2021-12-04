@@ -10,6 +10,6 @@ import androidx.compose.ui.platform.LocalContext
 fun MyPhone() {
     val context = LocalContext.current
     val locationManager = context.getSystemService(Context.LOCATION_SERVICE) as LocationManager
-    val gnssYear = if (locationManager.gnssYearOfHardware > 0) "${locationManager.gnssYearOfHardware}" else "before 2016"
+    val gnssYear = if (locationManager.gnssYearOfHardware > 0) "${locationManager.gnssYearOfHardware}" else "pre 2016"
     Text("GNSS: ${locationManager.gnssHardwareModelName} @ $gnssYear")
 }
