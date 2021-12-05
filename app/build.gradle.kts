@@ -2,9 +2,12 @@ plugins {
     id("com.android.application")
     id("com.google.android.gms.strict-version-matcher-plugin")
     id("com.mikepenz.aboutlibraries.plugin") version "10.0.0-b02"
+    id("dagger.hilt.android.plugin")
     kotlin("android")
+    kotlin("kapt")
 }
 
+val hiltVersion: String by rootProject.extra
 val composeVersion: String by rootProject.extra
 val accompanistVersion: String by rootProject.extra
 
@@ -78,8 +81,13 @@ dependencies {
     implementation("com.google.accompanist:accompanist-permissions:$accompanistVersion")
     implementation("com.google.accompanist:accompanist-navigation-animation:$accompanistVersion")
     implementation ("com.mikepenz:aboutlibraries-core:10.0.0-b02")
+    implementation ("com.google.dagger:hilt-android:$hiltVersion")
+    implementation ("androidx.hilt:hilt-navigation-compose:1.0.0-alpha03")
 
     debugImplementation("androidx.compose.ui:ui-tooling:$composeVersion")
+
+    kapt ("com.google.dagger:hilt-android-compiler:$hiltVersion")
+    kapt ("androidx.hilt:hilt-compiler:1.0.0")
 
     testImplementation("junit:junit:4.13.2")
 

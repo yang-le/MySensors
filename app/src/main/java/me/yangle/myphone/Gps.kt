@@ -2,7 +2,10 @@ package me.yangle.myphone
 
 import android.content.Context
 import android.content.Intent
-import android.location.*
+import android.location.Address
+import android.location.GnssStatus
+import android.location.Location
+import android.location.LocationManager
 import android.net.Uri
 import android.provider.Settings
 import androidx.activity.compose.rememberLauncherForActivityResult
@@ -21,9 +24,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.core.content.ContextCompat
-import androidx.lifecycle.ViewModel
-import androidx.lifecycle.ViewModelProvider
-import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.hilt.navigation.compose.hiltViewModel
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.PermissionRequired
 import com.google.accompanist.permissions.PermissionState
@@ -109,15 +110,7 @@ fun Gps(
                 startActivityLauncher.launch(Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS))
             }
         } else {
-            val context = LocalContext.current
-            val viewModel: GpsViewModel = viewModel(
-                factory = object : ViewModelProvider.Factory {
-                    override fun <T : ViewModel?> create(modelClass: Class<T>): T {
-                        @Suppress("UNCHECKED_CAST")
-                        return GpsViewModel(locationManager, Geocoder(context)) as T
-                    }
-                }
-            )
+            val viewModel: GpsViewModel = hiltViewModel()
 
             val gnssDataMap = viewModel.gnssData.values.groupBy { it.type }
             var gnssGroup by remember { mutableStateOf(gnssDataMap) }

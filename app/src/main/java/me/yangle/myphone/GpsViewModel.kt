@@ -1,6 +1,7 @@
 package me.yangle.myphone
 
 import android.annotation.SuppressLint
+import android.content.Context
 import android.location.*
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateMapOf
@@ -8,6 +9,8 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import dagger.hilt.android.lifecycle.HiltViewModel
+import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.channels.awaitClose
@@ -18,11 +21,11 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.io.IOException
 import java.util.*
+import javax.inject.Inject
 
-
-class GpsViewModel(
-    private val locationManager: LocationManager,
-    private val geocoder: Geocoder? = null
+@HiltViewModel
+class GpsViewModel @Inject constructor(
+    @ApplicationContext context: Context
 ) : ViewModel() {
     data class GnssData(
         val svid: Int,
@@ -33,10 +36,14 @@ class GpsViewModel(
         val Cn0DbHz: Float
     )
 
+    private val locationManager =
+        context.getSystemService(Context.LOCATION_SERVICE) as LocationManager
+    private val geocoder = Geocoder(context)
+
     val gnssData = mutableStateMapOf<Pair<Int, Int>, GnssData>()
 
     var location by mutableStateOf(Location(LocationManager.GPS_PROVIDER))
-    var addressList: List<Address> by mutableStateOf(listOf(Address(Locale.getDefault())))
+    var addressList by mutableStateOf(listOf(Address(Locale.getDefault())))
 
     @OptIn(ExperimentalCoroutinesApi::class)
     @SuppressLint("MissingPermission")
@@ -101,7 +108,7 @@ class GpsViewModel(
         viewModelScope.launch {
             getLocation().collect {
                 location = it
-                if (Geocoder.isPresent() && geocoder != null) {
+                if (Geocoder.isPresent()) {
                     addressList = withContext(Dispatchers.IO) {
                         try {
                             @Suppress("BlockingMethodInNonBlockingContext")
