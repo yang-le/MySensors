@@ -12,7 +12,7 @@ buildscript {
     val hiltVersion: String by extra
 
     dependencies {
-        classpath("com.android.tools.build:gradle:7.0.3")
+        classpath("com.android.tools.build:gradle:7.0.4")
         classpath(kotlin("gradle-plugin", "1.6.0"))
         classpath("com.google.android.gms:strict-version-matcher-plugin:1.2.2")
         classpath("com.google.dagger:hilt-android-gradle-plugin:$hiltVersion")

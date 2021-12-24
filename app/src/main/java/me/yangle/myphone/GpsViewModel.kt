@@ -1,7 +1,6 @@
 package me.yangle.myphone
 
 import android.annotation.SuppressLint
-import android.content.Context
 import android.location.*
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateMapOf
@@ -10,7 +9,6 @@ import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
-import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.channels.awaitClose
@@ -25,7 +23,8 @@ import javax.inject.Inject
 
 @HiltViewModel
 class GpsViewModel @Inject constructor(
-    @ApplicationContext context: Context
+    val locationManager: LocationManager,
+    private val geocoder: Geocoder
 ) : ViewModel() {
     data class GnssData(
         val svid: Int,
@@ -35,10 +34,6 @@ class GpsViewModel @Inject constructor(
         val carrierFrequency: Float?,
         val Cn0DbHz: Float
     )
-
-    private val locationManager =
-        context.getSystemService(Context.LOCATION_SERVICE) as LocationManager
-    private val geocoder = Geocoder(context)
 
     val gnssData = mutableStateMapOf<Pair<Int, Int>, GnssData>()
 
